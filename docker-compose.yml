@@ -1,0 +1,28 @@
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80" # 将主机的 8080 端口映射到容器的 80 端口
+    networks:
+      - history-network
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001" # 将主机的 3000 端口映射到容器的 3000 端口
+#    expose:
+#      - "3000" # 只对同一网络的请求可见，也就是只对 web 服务可见，主机无法访问[ports/expose 二选一]
+    environment:
+      - NODE_ENV=production
+    networks:
+      - history-network
+
+networks:
+  car-network:
+    driver: bridge # 使用默认的 bridge 网络
