@@ -1,3 +1,6 @@
+// 参考官方文档:
+// https://timeline.knightlab.com/docs/json-format.html
+
 declare namespace TL {
   interface Color {
     r: number;

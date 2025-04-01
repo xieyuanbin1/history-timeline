@@ -1,7 +1,7 @@
 # car maintenance records
 
 说明：\
-这是为汽车保养记录做的一个程序 \
+这是为时间线记录做的一个程序 \
 前端采用 vue/tsx 开发 \
 后端采用 express/sqlite3 开发 \
 推荐 docker 直接部署

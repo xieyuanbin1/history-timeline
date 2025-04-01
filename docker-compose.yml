@@ -1,7 +1,7 @@
 services:
   web:
     build:
-      context: ./web
+      context: ./web # 指定构建的上下文目录
       dockerfile: Dockerfile
     ports:
       - "8081:80" # 将主机的 8080 端口映射到容器的 80 端口
@@ -24,5 +24,5 @@ services:
       - history-network
 
 networks:
-  car-network:
+  timeline-network:
     driver: bridge # 使用默认的 bridge 网络

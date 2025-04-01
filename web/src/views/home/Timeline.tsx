@@ -4,7 +4,7 @@ export const Timeline = defineComponent({
   name: 'Timeline',
   setup(_props, _ctx) {
     onMounted(() => {
-      const data = {
+      const data: TL.Data = {
         "title": {
           "start_date": {
             "year": -2070
@@ -23,6 +23,11 @@ export const Timeline = defineComponent({
             "text": {
               "headline": "甘之战",
               "text": "夏王启与西方诸侯有扈氏之间的战争，战斗结果为有扈氏在甘（陕西户县,另一说为洛阳附近）被击败。夏后氏获得胜利，启得以建立中国第一个王朝夏朝。"
+            },
+            media: {
+              caption: 'sss',
+              url: 'https://cdn.pixabay.com/photo/2024/11/07/18/48/sofa-9181557_1280.jpg',
+              thumbnail: 'https://cdn.pixabay.com/photo/2024/11/07/18/48/sofa-9181557_1280.jpg'
             },
             "start_date": {
               "year": -2071
