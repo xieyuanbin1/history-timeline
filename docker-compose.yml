@@ -6,7 +6,7 @@ services:
     ports:
       - "8081:80" # 将主机的 8080 端口映射到容器的 80 端口
     networks:
-      - history-network
+      - timeline-network
     depends_on:
       - server
 
@@ -21,7 +21,7 @@ services:
     environment:
       - NODE_ENV=production
     networks:
-      - history-network
+      - timeline-network
 
 networks:
   timeline-network:
