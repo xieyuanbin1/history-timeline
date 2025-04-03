@@ -3,6 +3,12 @@ FROM node:22-slim
 # 设置工作目录
 WORKDIR /app
 
+# 安装 Python 和构建工具
+RUN apt-get update && apt-get install -y python3 python3-pip build-essential
+
+# 设置环境变量，确保 node-gyp 使用 Python3
+ENV PYTHON /usr/bin/python3
+
 # 复制后端代码并安装依赖
 COPY package*.json ./
 RUN npm install
