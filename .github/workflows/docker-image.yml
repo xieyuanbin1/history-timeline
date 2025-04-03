@@ -22,7 +22,7 @@ jobs:
         docker save -o timeline-server.tar timeline-server:$TIMESTAMP
 
     - name: Upload Docker image
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: timeline-server
         path: timeline-server.tar
