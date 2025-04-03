@@ -28,7 +28,10 @@ jobs:
     - name: Install system dependencies (Python + build tools)
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3 python3-pip build-essential
+        sudo apt-get install -y python3-pip build-essential
+
+    - name: Set Python Path
+      run: echo "PYTHON=$(which python3)" >> $GITHUB_ENV
 
     - name: Build the Docker image
       run: docker build server --file server/Dockerfile --tag timeline-server:$(date +%s)
