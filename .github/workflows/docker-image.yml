@@ -19,25 +19,10 @@ jobs:
       run: |
         TIMESTAMP=$(date +%s)
         docker build server --file server/Dockerfile --tag timeline-server:$TIMESTAMP
-        docker save -o timeline-server-$TIMESTAMP.tar timeline-server:$TIMESTAMP
+        docker save -o timeline-server.tar timeline-server:$TIMESTAMP
 
-    - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v3
       with:
-        tag_name: v1.0.${{ github.run_number }}
-        release_name: "Release v1.0.${{ github.run_number }}"
-        draft: false
-        prerelease: false
-
-    - name: Upload Docker image to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: timeline-server-$(date +%s).tar
-        asset_name: timeline-server.tar
-        asset_content_type: application/octet-stream
+        name: timeline-server
+        path: timeline-server.tar
