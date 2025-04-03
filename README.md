@@ -1,31 +1,31 @@
-# car maintenance records
+# Timeline
 
 说明：\
 这是为时间线记录做的一个程序 \
 前端采用 vue/tsx 开发 \
 后端采用 express/sqlite3 开发 \
-推荐 docker 直接部署
+推荐 docker 部署
 
 ## 使用方式
 
 ```shell
 docker compose up -d
-#docker-compose.yml 文件可以按照自己需求自定义配置
+# docker-compose.yml 文件可以按照自己需求自定义配置
 ```
 
 ## 开发模式
 - 可以进入到 server/web 目录运行
 ```shell
 cd server
-#npm install
+# npm install
 npm run dev
 ```
 
 ```shell
 cd web
-#npm install
+# npm install
 npm run dev
-#前端项目依赖后端接口 确保后端服务已经启动
+# 前端项目依赖后端接口 确保后端服务已经启动
 ```
 
 ## 容器运行架构
