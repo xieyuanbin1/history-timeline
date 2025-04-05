@@ -22,7 +22,7 @@ RUN rm -rf /app/src
 
 
 # 暴露端口（假设后端使用 3000 端口）
-EXPOSE 3000
+EXPOSE 3001
 
 # 启动后端服务
 CMD ["node", "dist/main.js"]

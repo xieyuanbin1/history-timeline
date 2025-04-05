@@ -5,12 +5,12 @@ import {router} from "./router";
 import cors from "cors";
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // 默认根路由
 // 这里好像没有用 会被 router 拦截
 app.get('/', (_req, res) => {
-  res.send('my car!')
+  res.send('pong!')
 })
 
 app.use(cors({
