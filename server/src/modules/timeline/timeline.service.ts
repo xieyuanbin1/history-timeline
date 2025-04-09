@@ -1,11 +1,11 @@
 import {Repository} from "typeorm";
-import {Timeline} from "../../entity/Timeline.entity";
+import {TimelineEntity} from "../../entity/Timeline.entity";
 import {AppDataSource} from "../../dataSource";
 
 export class TimelineService {
-  private readonly timelineRepo: Repository<Timeline>;
+  private readonly timelineRepo: Repository<TimelineEntity>;
   constructor() {
-    this.timelineRepo = AppDataSource.getRepository(Timeline);
+    this.timelineRepo = AppDataSource.getRepository(TimelineEntity);
   }
 
   async list() {
