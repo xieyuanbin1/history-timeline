@@ -97,7 +97,7 @@ module.exports = class History1732262876677 {
         name: 'media',
         columns: [
           { name: 'id', type: 'uuid', generationStrategy: 'uuid', isPrimary: true, isGenerated: true },
-          { name: 'pid', type: 'uuid' },
+          { name: 'pid', type: 'varchar' },
           { name: 'url', type: 'varchar' },
           { name: 'caption', type: 'varchar', isNullable: true },
           { name: 'credit', type: 'varchar', isNullable: true },

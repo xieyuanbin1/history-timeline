@@ -8,13 +8,13 @@ import {
 } from "typeorm";
 
 /**
- * id          : uuid
- * pid         : uuid    // 关联到父 id
- * from        : varchar // timeline 上有 title 和 events 都有 slide，from 用于区分归属
- * group       : varchar
- * display_date: varchar
- * autolink    : boolean
- * unique_id   : varchar
+ * id           : uuid
+ * pid          : uuid    // 关联到父 id
+ * from         : varchar // timeline 上有 title 和 events 都有 slide，from 用于区分归属
+ * group        : varchar
+ * display_date : varchar
+ * autolink     : boolean
+ * unique_id    : varchar
  */
 @Entity('slide')
 export class SlideEntity extends BaseEntity {
