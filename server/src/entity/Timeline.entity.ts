@@ -7,8 +7,12 @@ import {
   UpdateDateColumn
 } from "typeorm";
 
+/**
+ * id  : uuid
+ * name: varchar // 用于名称选择切换
+ */
 @Entity('timeline')
-export class Timeline extends BaseEntity {
+export class TimelineEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 

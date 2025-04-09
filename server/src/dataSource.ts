@@ -1,10 +1,11 @@
 import { DataSource } from "typeorm";
-import {Timeline} from "./entity/Timeline.entity";
-import {Slide} from "./entity/Slide.entity";
-import {Date} from "./entity/Date.entity";
-import {Text} from "./entity/Text.entity";
-import {Media} from "./entity/Media.entity";
-import {Background} from "./entity/Background.entity";
+import {TimelineEntity} from "./entity/Timeline.entity";
+import {SlideEntity} from "./entity/Slide.entity";
+import {DateEntity} from "./entity/Date.entity";
+import {TextEntity} from "./entity/Text.entity";
+import {MediaEntity} from "./entity/Media.entity";
+import {BackgroundEntity} from "./entity/Background.entity";
+import {ErasEntity} from "./entity/Eras.entity";
 
 export const AppDataSource = new DataSource({
   type: 'sqlite',
@@ -12,7 +13,7 @@ export const AppDataSource = new DataSource({
   synchronize: false,
   logging: false,
   // entities: ['/entity/*.entity{.ts,.js}'],
-  entities: [Timeline, Slide, Date, Text, Media, Background],
+  entities: [TimelineEntity, SlideEntity, DateEntity, TextEntity, MediaEntity, BackgroundEntity, ErasEntity],
   migrationsRun: true,
   // migrationsTransactionMode: 'all',
   migrations: [`migrations/*.js`],

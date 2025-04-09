@@ -29,10 +29,10 @@ npm run dev
 ```
 
 ## 容器运行架构
-- 前端在本地开发环境配置的 vite 代理为 127.0.0.1:3000
-- 服务端定义的端口为 3000
+- 前端在本地开发环境配置的 vite 代理为 127.0.0.1:3001
+- 服务端定义的端口为 3001
 - 前端在容器中使用 nginx 做静态服务及接口转发代理
-- 容器中 nginx 代理将接口 /api 转发到 http://server:3000/api 下
+- 容器中 nginx 代理将接口 /api 转发到 http://server:3001/api 下
 
 ## 后端服务架构
 路由及参数校验通过装饰器解析处理
@@ -99,13 +99,13 @@ const tl = new TL.Timeline('timeline', data, {});
 | 2  | text        | string | O    | 描述信息，任何文本，包括 `HTML` 或空白文本 |
 
 ### Media 格式
-| 序号 | 字段           | 数据类型   | 是否必须 | 说明                                  |
-|----|--------------|--------|------|-------------------------------------|
-| 1  | url          | string | M    | 大多数情况下是媒体的 URL                      |
-| 2  | caption      | string | O    | 说明信息，任何文本，包括 `HTML` 标记也是可以的         |
-| 3  | credit       | string | O    | 不知道是什么，任何文本，包括 `HTML` 标记也是可以的       |
-| 4  | thumbnail    | string | O    | 缩略图                                 |
-| 5  | alt          | string | O    | 图片的 `alt` 标签。如果没有提供，将使用标题（如果有的话）    |
-| 6  | alt          | string | O    | 图片标题                                |
-| 7  | link         | string | O    | 可选 URL，作为使用 `<a>` 标记包装媒体的 href      |
-| 8  | link_target  | string | O    | 如果使用，可选择与链接关联的目标                    |
+| 序号 | 字段          | 数据类型   | 是否必须 | 说明                                  |
+|----|-------------|--------|------|-------------------------------------|
+| 1  | url         | string | M    | 大多数情况下是媒体的 URL                      |
+| 2  | caption     | string | O    | 说明信息，任何文本，包括 `HTML` 标记也是可以的         |
+| 3  | credit      | string | O    | 不知道是什么，任何文本，包括 `HTML` 标记也是可以的       |
+| 4  | thumbnail   | string | O    | 缩略图                                 |
+| 5  | alt         | string | O    | 图片的 `alt` 标签。如果没有提供，将使用标题（如果有的话）    |
+| 6  | title       | string | O    | 图片标题                                |
+| 7  | link        | string | O    | 可选 URL，作为使用 `<a>` 标记包装媒体的 href      |
+| 8  | link_target | string | O    | 如果使用，可选择与链接关联的目标                    |

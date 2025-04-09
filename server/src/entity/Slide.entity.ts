@@ -1,13 +1,29 @@
-import {BaseEntity, Column, Entity, Generated, PrimaryGeneratedColumn} from "typeorm";
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from "typeorm";
 
+/**
+ * id          : uuid
+ * pid         : uuid    // 关联到父 id
+ * from        : varchar // timeline 上有 title 和 events 都有 slide，from 用于区分归属
+ * group       : varchar
+ * display_date: varchar
+ * autolink    : boolean
+ * unique_id   : varchar
+ */
 @Entity('slide')
-export class Slide extends BaseEntity {
+export class SlideEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({
     type: 'uuid',
-    comment: '关联到 timeline 的 title 或 events'
+    comment: '关联到 timeline 的 id'
   })
   pid!: string;
 
@@ -37,4 +53,17 @@ export class Slide extends BaseEntity {
     nullable: true
   })
   unique_id?: string;
+
+  @Column({type: 'int', default: 0})
+  weight?: number;
+
+  @CreateDateColumn({
+    default: () => "datetime(CURRENT_TIMESTAMP, 'localtime')",
+  })
+  create_time!: Date;
+
+  @UpdateDateColumn({
+    default: () => "datetime(CURRENT_TIMESTAMP, 'localtime')",
+  })
+  update_time!: Date;
 }

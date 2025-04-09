@@ -1,12 +1,24 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
 
+/**
+ * id         : uuid
+ * pid        : uuid    // 指向 slide.id
+ * url        : varchar
+ * caption    : varchar
+ * credit     : varchar
+ * thumbnail  : varchar
+ * alt        : varchar
+ * title      : varchar
+ * link       : varchar
+ * link_target: varchar
+ */
 @Entity('media')
-export class Media extends BaseEntity {
+export class MediaEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({type: 'varchar'})
-  mid!: string;
+  pid!: string;
 
   @Column({type: 'varchar'})
   url!: string;
@@ -31,4 +43,14 @@ export class Media extends BaseEntity {
 
   @Column({type: 'varchar', nullable: true})
   link_target?: string;
+
+  @CreateDateColumn({
+    default: () => "datetime(CURRENT_TIMESTAMP, 'localtime')",
+  })
+  create_time!: Date;
+
+  @UpdateDateColumn({
+    default: () => "datetime(CURRENT_TIMESTAMP, 'localtime')",
+  })
+  update_time!: Date;
 }
