@@ -10,18 +10,18 @@ module.exports = class History1732262876677 {
         columns: [
           {name: 'id', type: 'uuid', generationStrategy: 'uuid', isPrimary: true, isGenerated: true},
           {name: 'name', type: 'varchar', isUnique: true},
-          {name: 'title', type: 'uuid'},
-          {name: 'events', type: 'uuid'},
           {name: 'weight', type: 'int', default: 0},
+          { name: 'create_time', type: 'timestamp', default: "datetime(CURRENT_TIMESTAMP, 'localtime')" },
+          { name: 'update_time', type: 'timestamp', default: "datetime(CURRENT_TIMESTAMP, 'localtime')" },
         ]
       }),
       true
     );
 
-    // slides 表
+    // slide 表
     await queryRunner.createTable(
       new Table({
-        name: 'slides',
+        name: 'slide',
         columns: [
           {name: 'id', type: 'uuid', generationStrategy: 'uuid', isPrimary: true, isGenerated: true},
           {name: 'sid', type: 'uuid'},
@@ -112,7 +112,7 @@ module.exports = class History1732262876677 {
 
   async down(queryRunner) {
     await queryRunner.dropTable('timeline', true);
-    await queryRunner.dropTable('slides', true);
+    await queryRunner.dropTable('slide', true);
     await queryRunner.dropTable('date', true);
     await queryRunner.dropTable('text', true);
     await queryRunner.dropTable('media', true);
