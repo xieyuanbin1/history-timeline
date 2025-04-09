@@ -26,8 +26,9 @@ export const Timeline = defineComponent({
             },
             media: {
               caption: 'sss',
+              credit: 'credit--------',
               url: 'https://cdn.pixabay.com/photo/2024/11/07/18/48/sofa-9181557_1280.jpg',
-              thumbnail: 'https://cdn.pixabay.com/photo/2024/11/07/18/48/sofa-9181557_1280.jpg'
+              thumbnail: 'https://cdn.pixabay.com/photo/2024/11/07/18/48/sofa-9181557_1280.jpg',
             },
             "start_date": {
               "year": -2071
@@ -35,7 +36,7 @@ export const Timeline = defineComponent({
           }
         ]
       };
-      const tl = new TL.Timeline('timeline', data, {});
+      const tl = new TL.Timeline('timeline', data, {language: 'zh-cn'});
       console.log('>>', tl)
     })
     return () => (

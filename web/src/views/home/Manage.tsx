@@ -6,7 +6,7 @@ export const Manage = defineComponent({
   name: 'Manage',
   setup(_props, _ctx) {
     onMounted(() => {
-      handleTimelineList();
+      handleTimelineList().then(() => {});
     })
 
     // 获取时间线列表
@@ -21,11 +21,6 @@ export const Manage = defineComponent({
 
     return () => (
       <div class={["manage-container", 'p-4']}>
-        <p>manage</p>
-
-        {/* 条件搜索 */}
-        <div>条件搜索</div>
-
         {/* 新增等操作*/}
         <div>
           <Button>新增时间线</Button>

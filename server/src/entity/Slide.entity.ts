@@ -67,3 +67,8 @@ export class SlideEntity extends BaseEntity {
   })
   update_time!: Date;
 }
+
+export enum SlideFrom  {
+  TITLE = '0',
+  EVENT = '1',
+}

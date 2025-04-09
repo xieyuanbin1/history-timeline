@@ -76,7 +76,7 @@ declare namespace TL {
   }
 
   interface Background {
-    url: string;
+    url?: string;
     alt?: string;
     color?: number; // 以十六进制表示的 CSS 颜色（如 #0f9bd1）或有效的 CSS 颜色关键字
   }
