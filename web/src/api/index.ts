@@ -2,16 +2,16 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 
 // 数据返回的接口
 // 定义请求响应参数，不含data
-interface Result {
-  code: number;
-  msg: string;
-  data?: any;
-}
+// interface Result {
+//   code: number;
+//   msg: string;
+//   data?: any;
+// }
 
 // 请求响应参数，包含data
-interface ResultData<T = any> extends Result {
-  data?: T;
-}
+// interface ResultData<T = any> extends Result {
+//   data?: T;
+// }
 
 const URL = '/api'
 enum RequestEnums {
@@ -76,7 +76,7 @@ class RequestHttp {
           console.error(data.msg);
           return Promise.reject(data)
         }
-        return data;
+        return data.data;
       },
       (error: AxiosError) => {
         const { response } = error;
@@ -94,10 +94,10 @@ class RequestHttp {
   }
 
   // 常用方法封装
-  get<T>(url: string, params?: object): Promise<ResultData<T>> {
+  get<T>(url: string, params?: object): Promise<T> {
     return this.service.get(url, { params });
   }
-  post<T>(url: string, body?: object): Promise<ResultData<T>> {
+  post<T>(url: string, body?: object): Promise<T> {
     return this.service.post(url, body);
   }
 }

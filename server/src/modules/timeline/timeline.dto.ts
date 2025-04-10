@@ -150,3 +150,14 @@ export const TimelineAddEventSchema: JSONSchemaType<TimelineAddEventDTO> = {
   },
   required: ['name', 'start_date'],
 }
+
+export class TimelineIdDTO {
+  id!: string;
+}
+export const TimelineIdSchema: JSONSchemaType<TimelineIdDTO> = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+  },
+  required: ['id'],
+}

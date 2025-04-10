@@ -1,4 +1,4 @@
-import {Repository} from "typeorm";
+import {In, Repository} from "typeorm";
 import {TimelineEntity} from "../../entity/Timeline.entity";
 import {AppDataSource} from "../../dataSource";
 import {IBackground, IDate, IMedia, IText, TimelineAddEventDTO, TimelineAddTitleDTO} from "./timeline.dto";
@@ -9,6 +9,15 @@ import {TextEntity} from "../../entity/Text.entity";
 import {MediaEntity} from "../../entity/Media.entity";
 import {BackgroundEntity} from "../../entity/Background.entity";
 import {pick} from "lodash";
+
+// 定义 slide 的完成数据
+type SlideDetails = SlideEntity & {
+  start_date: DateEntity;
+  end_date?: DateEntity;
+  media?: MediaEntity;
+  background?: BackgroundEntity;
+  text?: TextEntity;
+};
 
 export class TimelineService {
   private readonly timelineRepo: Repository<TimelineEntity>;
@@ -28,7 +37,34 @@ export class TimelineService {
 
   // 只获取时间线
   async list() {
-    return this.timelineRepo.createQueryBuilder().select(['id', 'name']).getMany();
+    return this.timelineRepo.createQueryBuilder().select(['id', 'name']).getRawMany();
+  }
+
+  // 删除时间轴
+  // 同时删除 timeline slide 及 slide 以下的
+  async deleteTimeline(id: string) {
+    const qr = AppDataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      const slides = await qr.manager.find(SlideEntity, { where: { pid: id } })
+      const sids = slides.map(s => s.id);
+
+      // 删除 media
+      await qr.manager.delete(MediaEntity, { pid: In(sids) });
+      await qr.manager.delete(BackgroundEntity, { pid: In(sids) });
+      await qr.manager.delete(DateEntity, { pid: In(sids) });
+      await qr.manager.delete(TextEntity, { pid: In(sids) });
+      await qr.manager.delete(SlideEntity, { pid: id });
+      await qr.manager.delete(TimelineEntity, { id });
+
+      await qr.commitTransaction();
+      return {};
+    } catch (e) {
+      await qr.rollbackTransaction();
+      console.error('[delete timeline]::', e);
+      throw errorCode.DB_FAILED;
+    }
   }
 
   // 添加 timeline
@@ -38,8 +74,8 @@ export class TimelineService {
   }
 
   // 插入 slide
-  addSlide(pid: string, from: SlideFrom) {
-    const sl = this.slideRepo.create({ pid, from });
+  addSlide(pid: string, type: SlideFrom) {
+    const sl = this.slideRepo.create({ pid, type });
     return this.slideRepo.save(sl)
   }
 
@@ -69,12 +105,31 @@ export class TimelineService {
 
   // 获取 timeline -> title -> slide
   getTimeTileSlide(id: string) {
-    return this.timelineRepo.createQueryBuilder('tl').select().leftJoin(SlideEntity, 'sl').where('tl.id=:id', { id }).andWhere('sl.pid=tl.id').andWhere('from=:from', {from: SlideFrom.TITLE}).getOne();
+    return this.slideRepo.createQueryBuilder()
+      .select(['id', 'pid', 'type'])
+      .where('pid=:pid', { pid: id })
+      .andWhere('type=:type', {type: SlideFrom.TITLE})
+      .getRawOne();
   }
 
-  // 获取 title 详情
-  getTitleDetail(id: string) {
-    return this.slideRepo.createQueryBuilder('sl').select().leftJoinAndMapOne('sl.start_date', DateEntity, 'sd', 'sl.id=sd.pid', ).addSelect(['sd.year', 'sd.month', 'sd.day']).where('id=:id', { id }).getOne();
+  // 获取 title 详情 slide.id
+  async getTitleDetail(id: string) {
+    const details = await this.slideRepo.createQueryBuilder('sl')
+      .select(['sl.id', 'sl.pid', 'sl.type'])
+      .leftJoinAndMapOne('sl.start_date', DateEntity, 'sd', 'sl.id=sd.pid')
+      .leftJoinAndMapOne('sl.end_date', DateEntity, 'ed', 'sl.id=ed.pid')
+      .leftJoinAndMapOne('sl.media', MediaEntity, 'md', 'sl.id=md.pid')
+      .leftJoinAndMapOne('sl.background', BackgroundEntity, 'bg', 'sl.id=bg.pid')
+      .leftJoinAndMapOne('sl.text', TextEntity, 't', 'sl.id=t.pid')
+      .where('sl.id=:id', {id})
+      .getOne() as SlideDetails;
+    const start_date = details.start_date && pick(details.start_date, ['year', 'month', 'day']);
+    const end_date = details.end_date && pick(details.end_date, ['year', 'month', 'day']);
+    const media = details.media && pick(details.media, ['url', 'thumbnail', 'title']);
+    const background = details.background && pick(details.background, ['url', 'alt', 'color']);
+    const text = details.text && pick(details.text, ['headline', 'text']);
+
+    return { ...pick(details, ['id', 'pid', 'type']), start_date, end_date, media, background, text };
   }
 
   // 添加时间线 title 字段数据

@@ -37,13 +37,14 @@ module.exports = class History1732262876677 {
       new Table({
         name: 'slide',
         columns: [
-          {name: 'id', type: 'uuid', generationStrategy: 'uuid', isPrimary: true, isGenerated: true},
-          {name: 'pid', type: 'varchar'},
-          {name: 'from', type: 'varchar'},
-          {name: 'group', type: 'varchar', isNullable: true},
-          {name: 'display_date', type: 'varchar', isNullable: true},
-          {name: 'autolink', type: 'boolean', isNullable: true},
-          {name: 'unique_id', type: 'varchar', isNullable: true},
+          { name: 'id', type: 'uuid', generationStrategy: 'uuid', isPrimary: true, isGenerated: true },
+          { name: 'pid', type: 'varchar' },
+          { name: 'type', type: 'varchar' },
+          { name: 'group', type: 'varchar', isNullable: true },
+          { name: 'display_date', type: 'varchar', isNullable: true },
+          { name: 'autolink', type: 'boolean', isNullable: true },
+          { name: 'unique_id', type: 'varchar', isNullable: true },
+          { name: 'weight', type: 'int', default: 0 },
           { name: 'create_time', type: 'timestamp', default: "datetime(CURRENT_TIMESTAMP, 'localtime')" },
           { name: 'update_time', type: 'timestamp', default: "datetime(CURRENT_TIMESTAMP, 'localtime')" },
         ]

@@ -29,6 +29,7 @@ export async function controllerHandle(path: string, body?: any): Promise<Record
     if (validateSchema) {
       const ajv = new Ajv({});
       const valid = ajv.validate(validateSchema, body);
+      ajv.errors && console.log('------------------------------------------【ajv】error:', ajv.errors, body.body);
       if (!valid) throw errorCode.INVALID_PARAMS;
     }
 
@@ -53,7 +54,7 @@ router.use(async (req, res) => {
   }
   try {
     console.log('[LOG]', `[${id}]`, '[path]', req.path, '[request]', JSON.stringify(req.body) || '{}');
-    const data = await controllerHandle(req.path, req);
+    const data = await controllerHandle(req.path, req.body);
     console.log('[LOG]', `[${id}]`, '[path]', req.path, '[response]', JSON.stringify(data));
     res.send(Object.assign({ code: 0, msg: 'success' }, { data }));
   } catch (error: any) {

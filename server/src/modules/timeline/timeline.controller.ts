@@ -1,6 +1,13 @@
 import {Controller, Post, Validate} from "../../decorators";
 import {TimelineService} from "./timeline.service";
-import {TimelineAddEventDTO, TimelineAddEventSchema, TimelineAddTitleDTO, TimelineAddTitleSchema} from "./timeline.dto";
+import {
+  TimelineAddEventDTO,
+  TimelineAddEventSchema,
+  TimelineAddTitleDTO,
+  TimelineAddTitleSchema,
+  TimelineIdDTO, TimelineIdSchema
+} from "./timeline.dto";
+import {pick} from "lodash";
 
 @Controller('timeline')
 export class TimelineController {
@@ -14,11 +21,21 @@ export class TimelineController {
     return this.timelineService.list();
   }
 
+  // 删除时间轴
+  @Post('delete')
+  @Validate(TimelineIdSchema)
+  delTimeline(body: TimelineIdDTO) {
+    const { id } = body;
+    return this.timelineService.deleteTimeline(id);
+  }
+
   // 获取时间线中的 title 详细
   @Post('title/detail')
-  async titleDetail(body: { id: string}) {
+  @Validate(TimelineIdSchema)
+  async titleDetail(body: TimelineIdDTO) {
     const { id } = body;
     const slide = await this.timelineService.getTimeTileSlide(id);
+    console.log('--------------------------slide::', slide);
     return this.timelineService.getTitleDetail(slide!.id);
   }
 

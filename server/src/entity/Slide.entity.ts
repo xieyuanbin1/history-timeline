@@ -10,7 +10,7 @@ import {
 /**
  * id           : uuid
  * pid          : uuid    // 关联到父 id
- * from         : varchar // timeline 上有 title 和 events 都有 slide，from 用于区分归属
+ * type         : varchar // timeline 上有 title 和 events 都有 slide，type 用于区分归属
  * group        : varchar
  * display_date : varchar
  * autolink     : boolean
@@ -28,7 +28,7 @@ export class SlideEntity extends BaseEntity {
   pid!: string;
 
   @Column({ type: 'varchar' })
-  from!: string;
+  type!: string;
 
   @Column({
     type: 'varchar',
@@ -68,7 +68,8 @@ export class SlideEntity extends BaseEntity {
   update_time!: Date;
 }
 
+// slide.type 字段
 export enum SlideFrom  {
-  TITLE = '0',
-  EVENT = '1',
+  TITLE = '0', // 对应 title 字段
+  EVENT = '1', // 对应 events 字段
 }
