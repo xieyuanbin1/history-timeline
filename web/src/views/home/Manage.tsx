@@ -1,7 +1,8 @@
 import {defineComponent, onMounted, ref} from "vue";
-import {Button} from "ant-design-vue";
+import {Button, Card, CardMeta} from "ant-design-vue";
 import {timelineAddTitleApi, timelineDeleteApi, timelineListApi, timelineTitleDetailApi} from "../../api/timeline.ts";
 import {SlideResponse} from "../../types/timeline.rest.ts";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 
 export const Manage = defineComponent({
   name: 'Manage',
@@ -58,30 +59,60 @@ export const Manage = defineComponent({
       }
     }
 
+    // 删除 slide
+    function handleDeleteSlide(id: string) {
+      console.log('delete::::::::::', id);
+    }
+
     return () => (
       <div class={["manage-container", 'p-4']}>
         {/* 新增等操作*/}
         <div>
-          <Button onClick={handleTimelineList}>更新 timeline 列表数据</Button>
+          <Button onClick={handleTimelineList}>刷新</Button>
           <Button onClick={handleTimelineAddSlide}>新增时间线</Button>
           <Button>新增事件</Button>
         </div>
 
         <div class={['flex']}>
           {/* 列表 */}
-          <div class={['list', 'w-2/12', 'pl-4', 'pr-4']}>
+          <div class={['list', 'w-2/12', 'p-4']}>
             <ul>
               {
                 timelineList.value.map((tl: { id: string, name: string }) => {
-                  return <li key={tl.id}>{tl.name} <Button onClick={() => handleTimelineDetail(tl.id)}>详细</Button> <Button onClick={() => handleTimelineDel(tl.id)}>删除</Button></li>
+                  return <li class={['cursor-pointer']} onClick={() => handleTimelineDetail(tl.id)} key={tl.id}>{tl.name} <Button onClick={() => handleTimelineDel(tl.id)}>删除</Button></li>
                 })
               }
             </ul>
           </div>
 
-          <div class={['w-8/12', 'pl-4', 'pr-4']}>
-            <div class={['title-container']}>{JSON.stringify(slides.value.title)}</div>
-            <div class={['events-container']}>{JSON.stringify(slides.value.events)}</div>
+          <div class={['w-8/12', 'p-4']}>
+            <div class={['events-container']}>
+              {
+                slides.value.title && <Card
+                  class={['border-blue-300']}
+                  hoverable
+                  v-slots={{
+                    actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value.title?.id!)} key="delete" />]
+                  }}
+                  style="width: 300px">
+                  <CardMeta title={slides.value.title?.text.text} description={slides.value.title?.text.headline}></CardMeta>
+                </Card>
+              }
+              {
+                slides.value.events.map(slide => (
+                  <div>
+                    <Card
+                      hoverable
+                      v-slots={{
+                        actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slide.id!)} key="delete" />]
+                      }}
+                      style="width: 300px">
+                      <CardMeta title={slide.text.text} description={slide.text.headline}></CardMeta>
+                    </Card>
+                  </div>
+                ))
+              }
+            </div>
           </div>
         </div>
 
