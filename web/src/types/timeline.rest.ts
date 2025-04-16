@@ -29,3 +29,18 @@ export class TimelineAddTitle {
   media?: RMedia;
   background?: RBackground;
 }
+
+export class RSlide {
+  id?: string;
+  pid?: number;
+  text!: RText;
+  start_date!: RDate;
+  end_date?: RDate;
+  background?: RBackground;
+  media?: RMedia;
+}
+
+export class SlideResponse {
+  title?: RSlide;
+  events!: RSlide[];
+}

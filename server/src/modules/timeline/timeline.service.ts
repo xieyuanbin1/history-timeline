@@ -112,12 +112,21 @@ export class TimelineService {
       .getRawOne();
   }
 
+  // 获取 timeline -> title -> slide
+  getTimeEventsSlide(id: string) {
+    return this.slideRepo.createQueryBuilder()
+      .select(['id', 'pid', 'type'])
+      .where('pid=:pid', { pid: id })
+      .andWhere('type=:type', {type: SlideFrom.EVENT})
+      .getRawMany();
+  }
+
   // 获取 title 详情 slide.id
   async getTitleDetail(id: string) {
     const details = await this.slideRepo.createQueryBuilder('sl')
       .select(['sl.id', 'sl.pid', 'sl.type'])
-      .leftJoinAndMapOne('sl.start_date', DateEntity, 'sd', 'sl.id=sd.pid')
-      .leftJoinAndMapOne('sl.end_date', DateEntity, 'ed', 'sl.id=ed.pid')
+      .leftJoinAndMapOne('sl.start_date', DateEntity, 'sd', 'sl.id=sd.pid and sd.type=0')
+      .leftJoinAndMapOne('sl.end_date', DateEntity, 'ed', 'sl.id=ed.pid and ed.type=1')
       .leftJoinAndMapOne('sl.media', MediaEntity, 'md', 'sl.id=md.pid')
       .leftJoinAndMapOne('sl.background', BackgroundEntity, 'bg', 'sl.id=bg.pid')
       .leftJoinAndMapOne('sl.text', TextEntity, 't', 'sl.id=t.pid')
@@ -130,6 +139,28 @@ export class TimelineService {
     const text = details.text && pick(details.text, ['headline', 'text']);
 
     return { ...pick(details, ['id', 'pid', 'type']), start_date, end_date, media, background, text };
+  }
+
+  // 获取 events 详情
+  async getEventsDetail(ids: string[]) {
+    const details = await this.slideRepo.createQueryBuilder('sl')
+      .select(['sl.id', 'sl.pid', 'sl.type'])
+      .leftJoinAndMapOne('sl.start_date', DateEntity, 'sd', 'sl.id=sd.pid and sd.type=0')
+      .leftJoinAndMapOne('sl.end_date', DateEntity, 'ed', 'sl.id=ed.pid and ed.type=1')
+      .leftJoinAndMapOne('sl.media', MediaEntity, 'md', 'sl.id=md.pid')
+      .leftJoinAndMapOne('sl.background', BackgroundEntity, 'bg', 'sl.id=bg.pid')
+      .leftJoinAndMapOne('sl.text', TextEntity, 't', 'sl.id=t.pid')
+      .where('sl.id IN (:...ids)', {ids})
+      .getMany() as SlideDetails[];
+
+    return  details.map(slide => {
+      const start_date = slide.start_date && pick(slide.start_date, ['year', 'month', 'day']);
+      const end_date = slide.end_date && pick(slide.end_date, ['year', 'month', 'day']);
+      const media = slide.media && pick(slide.media, ['url', 'thumbnail', 'title']);
+      const background = slide.background && pick(slide.background, ['url', 'alt', 'color']);
+      const text = slide.text && pick(slide.text, ['headline', 'text']);
+      return { ...pick(slide, ['id', 'pid', 'type']), start_date, end_date, media, background, text };
+    });
   }
 
   // 添加时间线 title 字段数据

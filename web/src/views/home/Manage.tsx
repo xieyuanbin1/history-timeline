@@ -1,11 +1,14 @@
 import {defineComponent, onMounted, ref} from "vue";
 import {Button} from "ant-design-vue";
 import {timelineAddTitleApi, timelineDeleteApi, timelineListApi, timelineTitleDetailApi} from "../../api/timeline.ts";
+import {SlideResponse} from "../../types/timeline.rest.ts";
 
 export const Manage = defineComponent({
   name: 'Manage',
   setup(_props, _ctx) {
     const timelineList = ref<{id: string, name: string}[]>([]);
+    const slides = ref<SlideResponse>({events: []});
+
     onMounted(() => {
       handleTimelineList().then(() => {});
     })
@@ -25,8 +28,9 @@ export const Manage = defineComponent({
     async function handleTimelineDetail(id: string) {
       try {
         console.log('---------- detail:', id);
-        const title = await timelineTitleDetailApi(id);
-        console.log('---------- title:', title);
+        const data = await timelineTitleDetailApi(id);
+        console.log('---------- data:', data);
+        slides.value = data;
       } catch (e) {
         console.log('[error] slide detail:', e)
       }
@@ -63,16 +67,24 @@ export const Manage = defineComponent({
           <Button>新增事件</Button>
         </div>
 
-        {/* 列表 */}
-        <div class="list">
-          <ul>
-            {
-              timelineList.value.map((tl: { id: string, name: string }) => {
-                return <li key={tl.id}>{tl.name} <Button onClick={() => handleTimelineDetail(tl.id)}>详细</Button> <Button onClick={() => handleTimelineDel(tl.id)}>删除</Button></li>
-              })
-            }
-          </ul>
+        <div class={['flex']}>
+          {/* 列表 */}
+          <div class={['list', 'w-2/12', 'pl-4', 'pr-4']}>
+            <ul>
+              {
+                timelineList.value.map((tl: { id: string, name: string }) => {
+                  return <li key={tl.id}>{tl.name} <Button onClick={() => handleTimelineDetail(tl.id)}>详细</Button> <Button onClick={() => handleTimelineDel(tl.id)}>删除</Button></li>
+                })
+              }
+            </ul>
+          </div>
+
+          <div class={['w-8/12', 'pl-4', 'pr-4']}>
+            <div class={['title-container']}>{JSON.stringify(slides.value.title)}</div>
+            <div class={['events-container']}>{JSON.stringify(slides.value.events)}</div>
+          </div>
         </div>
+
       </div>
     )
   },

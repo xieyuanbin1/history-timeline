@@ -34,9 +34,14 @@ export class TimelineController {
   @Validate(TimelineIdSchema)
   async titleDetail(body: TimelineIdDTO) {
     const { id } = body;
-    const slide = await this.timelineService.getTimeTileSlide(id);
-    console.log('--------------------------slide::', slide);
-    return this.timelineService.getTitleDetail(slide!.id);
+    const title = await this.timelineService.getTimeTileSlide(id);
+    let titleSlide;
+    if (title) titleSlide = await this.timelineService.getTitleDetail(title!.id);
+
+    const events = await this.timelineService.getTimeEventsSlide(id);
+    const ids = events.map(event => event.id);
+    const eventsSlide = await this.timelineService.getEventsDetail(ids);
+    return { title: titleSlide, events: eventsSlide };
   }
 
   @Post('add/title')

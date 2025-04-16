@@ -10,7 +10,7 @@ import {
 /**
  * id           : uuid
  * pid          : uuid    // 关联到父 id
- * type         : varchar // timeline 上有 title 和 events 都有 slide，type 用于区分归属
+ * type         : varchar // timeline 上有 title 和 events 都有 slide，type 用于区分归属 '0'/ ''/
  * group        : varchar
  * display_date : varchar
  * autolink     : boolean
