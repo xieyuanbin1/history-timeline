@@ -1,8 +1,11 @@
 import {defineComponent, onMounted, ref} from "vue";
-import {Button, Card, CardMeta} from "ant-design-vue";
+import {Button, Card, CardMeta, Modal, Select, SelectProps} from "ant-design-vue";
 import {timelineAddTitleApi, timelineDeleteApi, timelineListApi, timelineTitleDetailApi} from "../../api/timeline.ts";
 import {SlideResponse} from "../../types/timeline.rest.ts";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
+import {SelectValue} from "ant-design-vue/es/select";
+
+import "./manage.less";
 
 export const Manage = defineComponent({
   name: 'Manage',
@@ -10,9 +13,21 @@ export const Manage = defineComponent({
     const timelineList = ref<{id: string, name: string}[]>([]);
     const slides = ref<SlideResponse>({events: []});
 
+    // 时间线下拉框数据
+    const timelineOptions = ref<SelectProps['options']>([]);
+    // 当前选择的时间线数据
+    const timelineValue = ref<SelectValue>(undefined);
+
+    // 控制显示编辑时间线模态框
+    const openTimeline = ref<boolean>(false);
+
     onMounted(() => {
-      handleTimelineList().then(() => {});
+      _init();
     })
+
+    function _init() {
+      handleTimelineList().then();
+    }
 
     // 获取时间线列表
     async function handleTimelineList () {
@@ -20,8 +35,9 @@ export const Manage = defineComponent({
         const list = await timelineListApi();
         console.log('==========', list)
         timelineList.value = list;
+        timelineOptions.value = list.map(t => ({value: t.id, label: t.name}))
       } catch (e) {
-        console.log('eeeeeeee::', e);
+        console.log('[ERROR] 获取时间线列表:', e);
       }
     }
 
@@ -42,6 +58,7 @@ export const Manage = defineComponent({
       console.log('-- 删除 时间线 包括 tl， slide 下的所有数据', id);
       const ret = await timelineDeleteApi(id);
       console.log('delete:', ret);
+      handleTimelineList().then();
     }
 
     // 添加时间线 slide
@@ -54,6 +71,7 @@ export const Manage = defineComponent({
           text: { headline: '测试标题', text: '测试内容'},
         });
         console.log('==========', add)
+        handleTimelineList().then();
       } catch (e) {
         console.log('[error] add slide:', e)
       }
@@ -64,58 +82,81 @@ export const Manage = defineComponent({
       console.log('delete::::::::::', id);
     }
 
+    // 选择时间线
+    function handleSelectTimeline(value: SelectValue) {
+      timelineValue.value = value;
+      console.log('-------------- select:', value);
+      handleTimelineDetail(value as string).then()
+    }
+    // 选择时间线过滤操作
+    const handleFilterOption = (input: string, option: any) => {
+      return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+    };
+
     return () => (
       <div class={["manage-container", 'p-4']}>
         {/* 新增等操作*/}
         <div>
+          <Select
+            value={timelineValue.value}
+            options={timelineOptions.value}
+            filterOption={handleFilterOption}
+            onChange={handleSelectTimeline}
+            showSearch placeholder="选择..."
+            style="width: 200px">
+          </Select>
           <Button onClick={handleTimelineList}>刷新</Button>
+          <Button onClick={() => openTimeline.value = true}>管理时间线</Button>
           <Button onClick={handleTimelineAddSlide}>新增时间线</Button>
           <Button>新增事件</Button>
         </div>
 
         <div class={['flex']}>
-          {/* 列表 */}
-          <div class={['list', 'w-2/12', 'p-4']}>
-            <ul>
-              {
-                timelineList.value.map((tl: { id: string, name: string }) => {
-                  return <li class={['cursor-pointer']} onClick={() => handleTimelineDetail(tl.id)} key={tl.id}>{tl.name} <Button onClick={() => handleTimelineDel(tl.id)}>删除</Button></li>
-                })
-              }
-            </ul>
-          </div>
-
           <div class={['w-8/12', 'p-4']}>
             <div class={['events-container']}>
               {
-                slides.value.title && <Card
-                  class={['border-blue-300']}
-                  hoverable
-                  v-slots={{
+                slides.value.title && <Card class={['border-blue-300']} hoverable style="width: 300px">
+                  {{
+                    default: () => <CardMeta title={slides.value.title?.text.text} description={slides.value.title?.text.headline}></CardMeta>,
                     actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value.title?.id!)} key="delete" />]
                   }}
-                  style="width: 300px">
-                  <CardMeta title={slides.value.title?.text.text} description={slides.value.title?.text.headline}></CardMeta>
                 </Card>
               }
               {
                 slides.value.events.map(slide => (
-                  <div>
-                    <Card
-                      hoverable
-                      v-slots={{
-                        actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slide.id!)} key="delete" />]
-                      }}
-                      style="width: 300px">
-                      <CardMeta title={slide.text.text} description={slide.text.headline}></CardMeta>
-                    </Card>
-                  </div>
+                  <Card hoverable style="width: 300px">
+                    {{
+                      default: () => <CardMeta title={slide.text.text} description={slide.text.headline}></CardMeta>,
+                      actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slide.id!)} key="delete" />]
+                    }}
+                  </Card>
                 ))
               }
             </div>
           </div>
         </div>
 
+        {/*编辑操作时间线*/}
+        <Modal
+          title="时间线"
+          width="100%"
+          wrapClassName="full-modal"
+          onOk={() => openTimeline.value = false}
+          onCancel={() => openTimeline.value = false}
+          open={openTimeline.value}>
+          <div class={['list', 'w-2/12', 'p-4']}>
+            <ul>
+              {
+                timelineList.value.map((tl: { id: string, name: string }) => {
+                  return <li class={['cursor-pointer']} key={tl.id}>
+                    {tl.name}
+                    <Button onClick={() => handleTimelineDel(tl.id)}>删除</Button>
+                  </li>
+                })
+              }
+            </ul>
+          </div>
+        </Modal>
       </div>
     )
   },
