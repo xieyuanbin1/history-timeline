@@ -18,11 +18,14 @@ export const Manage = defineComponent({
     // 当前选择的时间线数据
     const timelineValue = ref<SelectValue>(undefined);
 
-    //
+    // 添加时间线的输入框值
     const timelineAddNameValue = ref('');
 
     // 控制显示编辑时间线模态框
     const openTimeline = ref<boolean>(false);
+
+    // 控制添加 事件的模态框
+    const openAddSlide = ref<boolean>(false);
 
     onMounted(() => {
       _init();
@@ -92,6 +95,18 @@ export const Manage = defineComponent({
       handleTimelineList().then();
     }
 
+    // 提交 添加事件的函数
+    async function handleAddSlide() {
+      console.log('add slide.');
+      openAddSlide.value = false;
+    }
+
+    // 取消添加
+    async function handleCancelAddSlide() {
+      openAddSlide.value = false;
+      // TODO: 清理模态框的临时数据
+    }
+
     return () => (
       <div class={["manage-container", 'p-4']}>
         {/* 新增等操作*/}
@@ -106,7 +121,7 @@ export const Manage = defineComponent({
           </Select>
           <Button onClick={handleTimelineList}>刷新</Button>
           <Button onClick={() => openTimeline.value = true}>管理时间线</Button>
-          <Button>新增事件</Button>
+          <Button onClick={() => openAddSlide.value = true}>新增事件</Button>
         </div>
 
         <div class={['flex']}>
@@ -138,6 +153,8 @@ export const Manage = defineComponent({
         <Modal
           title="时间线"
           width="100%"
+          okText="确定"
+          cancelText="取消"
           wrapClassName="full-modal"
           onOk={() => openTimeline.value = false}
           onCancel={() => openTimeline.value = false}
@@ -165,6 +182,19 @@ export const Manage = defineComponent({
               }
             </ul>
           </div>
+        </Modal>
+
+        {/*添加事件*/}
+        <Modal
+          title="添加事件"
+          width="100%"
+          wrapClassName="full-modal"
+          okText="确定"
+          cancelText="取消"
+          onOk={handleAddSlide}
+          onCancel={handleCancelAddSlide}
+          open={openAddSlide.value}>
+          <p>添加事件</p>
         </Modal>
       </div>
     )
