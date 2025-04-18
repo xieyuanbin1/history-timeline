@@ -23,11 +23,6 @@ export class RBackground {
 
 export class TimelineAddTitle {
   name!: string;
-  start_date!: RDate;
-  end_date?: RDate;
-  text?: RText;
-  media?: RMedia;
-  background?: RBackground;
 }
 
 export class RSlide {

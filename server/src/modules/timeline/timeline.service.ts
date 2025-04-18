@@ -1,7 +1,15 @@
 import {In, Repository} from "typeorm";
 import {TimelineEntity} from "../../entity/Timeline.entity";
 import {AppDataSource} from "../../dataSource";
-import {IBackground, IDate, IMedia, IText, TimelineAddEventDTO, TimelineAddTitleDTO} from "./timeline.dto";
+import {
+  IBackground,
+  IDate,
+  IMedia,
+  IText,
+  TimelineAddEventDTO,
+  TimelineAddTitleDTO,
+  TimelineUpdateEventDTO
+} from "./timeline.dto";
 import {errorCode} from "../../errorCode";
 import {SlideEntity, SlideFrom} from "../../entity/Slide.entity";
 import {DateEntity} from "../../entity/Date.entity";
@@ -74,8 +82,8 @@ export class TimelineService {
   }
 
   // 插入 slide
-  addSlide(pid: string, type: SlideFrom) {
-    const sl = this.slideRepo.create({ pid, type });
+  addSlide(pid: string, type: SlideFrom, group?: string) {
+    const sl = this.slideRepo.create({ pid, type, group });
     return this.slideRepo.save(sl)
   }
 
@@ -164,17 +172,27 @@ export class TimelineService {
   }
 
   // 添加时间线 title 字段数据
-  async addTitle(title: TimelineAddTitleDTO) {
-    const { name, start_date, end_date, text, media, background } = title;
+  // 只操作 timeline.name
+  addTitle(title: TimelineAddTitleDTO) {
+    const { name } = title;
+    return this.add(name);
+  }
+
+  // 更新 timeline.name 字段
+  updateTitle(id: string, name: string) {
+    return this.timelineRepo.createQueryBuilder().update(TimelineEntity).set({name}).where('id=:id', {id}).execute();
+  }
+
+  // 添加 slide -> title 或 events
+  async addEvent(event: TimelineAddEventDTO) {
+    const { id, type, group, start_date, end_date, text, media, background } = event;
     const qr = AppDataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
     try {
-      // 添加 timeline 数据
-      const timeline = await this.add(name);
 
       // 添加 slide 数据
-      const slide = await this.addSlide(timeline.id, SlideFrom.TITLE);
+      const slide = await this.addSlide(id, type, group);
 
       // 添加 start_date 数据
       await this.addDate(slide.id, 0, pick(start_date, ['year', 'month', 'day']));
@@ -208,5 +226,31 @@ export class TimelineService {
     }
   }
 
-  async addEvent(title: TimelineAddEventDTO) {}
+  // 更新 slide
+  async updateEvent(event: TimelineUpdateEventDTO) {}
+
+  // 删除 slide
+  async deleteSlide(id: string) {
+    const qr = AppDataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      const slide = await qr.manager.findOne(SlideEntity, { where: { id: id } })
+      if (!slide) return {};
+
+      // 删除 media
+      await qr.manager.delete(MediaEntity, { pid: slide.id });
+      await qr.manager.delete(BackgroundEntity, { pid: slide.id });
+      await qr.manager.delete(DateEntity, { pid: slide.id });
+      await qr.manager.delete(TextEntity, { pid: slide.id });
+      await qr.manager.delete(SlideEntity, { id: id });
+
+      await qr.commitTransaction();
+      return {};
+    } catch (e) {
+      await qr.rollbackTransaction();
+      console.error('[delete slide]::', e);
+      throw errorCode.DB_FAILED;
+    }
+  }
 }

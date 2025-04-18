@@ -1,5 +1,5 @@
 import {defineComponent, onMounted, ref} from "vue";
-import {Button, Card, CardMeta, Modal, Select, SelectProps} from "ant-design-vue";
+import {Button, Card, CardMeta, InputSearch, message, Modal, Select, SelectProps} from "ant-design-vue";
 import {timelineAddTitleApi, timelineDeleteApi, timelineListApi, timelineTitleDetailApi} from "../../api/timeline.ts";
 import {SlideResponse} from "../../types/timeline.rest.ts";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
@@ -17,6 +17,9 @@ export const Manage = defineComponent({
     const timelineOptions = ref<SelectProps['options']>([]);
     // 当前选择的时间线数据
     const timelineValue = ref<SelectValue>(undefined);
+
+    //
+    const timelineAddNameValue = ref('');
 
     // 控制显示编辑时间线模态框
     const openTimeline = ref<boolean>(false);
@@ -61,22 +64,6 @@ export const Manage = defineComponent({
       handleTimelineList().then();
     }
 
-    // 添加时间线 slide
-    async function handleTimelineAddSlide() {
-      try {
-        const add = await timelineAddTitleApi({
-          name: `test-${Date.now()}`,
-          start_date: { year: 1000, month: 10, day: 10 },
-          end_date: { year: 1000, month: 10, day: 10 },
-          text: { headline: '测试标题', text: '测试内容'},
-        });
-        console.log('==========', add)
-        handleTimelineList().then();
-      } catch (e) {
-        console.log('[error] add slide:', e)
-      }
-    }
-
     // 删除 slide
     function handleDeleteSlide(id: string) {
       console.log('delete::::::::::', id);
@@ -93,6 +80,18 @@ export const Manage = defineComponent({
       return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
     };
 
+    // 添加时间线 timeline.name
+    async function handleAddTimelineName() {
+      console.log('-----value:', timelineAddNameValue.value);
+      if (!timelineAddNameValue.value) return message.error("时间线名称不能为空");
+      const add = await timelineAddTitleApi({
+        name: timelineAddNameValue.value,
+      });
+      console.log('==========', add)
+      timelineAddNameValue.value = '';
+      handleTimelineList().then();
+    }
+
     return () => (
       <div class={["manage-container", 'p-4']}>
         {/* 新增等操作*/}
@@ -107,7 +106,6 @@ export const Manage = defineComponent({
           </Select>
           <Button onClick={handleTimelineList}>刷新</Button>
           <Button onClick={() => openTimeline.value = true}>管理时间线</Button>
-          <Button onClick={handleTimelineAddSlide}>新增时间线</Button>
           <Button>新增事件</Button>
         </div>
 
@@ -117,7 +115,7 @@ export const Manage = defineComponent({
               {
                 slides.value.title && <Card class={['border-blue-300']} hoverable style="width: 300px">
                   {{
-                    default: () => <CardMeta title={slides.value.title?.text.text} description={slides.value.title?.text.headline}></CardMeta>,
+                    default: () => <CardMeta title={slides.value.title?.text.headline} description={slides.value.title?.text.text}></CardMeta>,
                     actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value.title?.id!)} key="delete" />]
                   }}
                 </Card>
@@ -126,7 +124,7 @@ export const Manage = defineComponent({
                 slides.value.events.map(slide => (
                   <Card hoverable style="width: 300px">
                     {{
-                      default: () => <CardMeta title={slide.text.text} description={slide.text.headline}></CardMeta>,
+                      default: () => <CardMeta title={slide.text.headline} description={slide.text.text}></CardMeta>,
                       actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slide.id!)} key="delete" />]
                     }}
                   </Card>
@@ -145,6 +143,17 @@ export const Manage = defineComponent({
           onCancel={() => openTimeline.value = false}
           open={openTimeline.value}>
           <div class={['list', 'w-2/12', 'p-4']}>
+            <div>
+              <InputSearch
+                value={timelineAddNameValue.value}
+                onChange={(e) => timelineAddNameValue.value = e.target.value!}
+                placeholder="添加时间线"
+                onSearch={handleAddTimelineName}>
+                {{
+                  enterButton: () => <Button>新增</Button>
+                }}
+              </InputSearch>
+            </div>
             <ul>
               {
                 timelineList.value.map((tl: { id: string, name: string }) => {
