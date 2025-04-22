@@ -39,3 +39,14 @@ export class SlideResponse {
   title?: RSlide;
   events!: RSlide[];
 }
+
+export class RAddSlide {
+  id!: string;
+  type!: string;
+  text!: RText;
+  start_date!: RDate;
+  end_date?: RDate;
+  group?: string;
+  background?: RBackground;
+  media?: RMedia;
+}

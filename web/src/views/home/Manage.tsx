@@ -1,11 +1,29 @@
-import {defineComponent, onMounted, ref} from "vue";
-import {Button, Card, CardMeta, InputSearch, message, Modal, Select, SelectProps} from "ant-design-vue";
-import {timelineAddTitleApi, timelineDeleteApi, timelineListApi, timelineTitleDetailApi} from "../../api/timeline.ts";
+import {defineComponent, onMounted, Ref, ref} from "vue";
+import {
+  Button,
+  Card,
+  CardMeta,
+  Input, InputNumber,
+  InputSearch,
+  message,
+  Modal, RadioButton, RadioGroup,
+  Select, SelectOption,
+  SelectProps,
+  Textarea
+} from "ant-design-vue";
+import {
+  slideAddApi,
+  timelineAddTitleApi,
+  timelineDeleteApi,
+  timelineListApi,
+  timelineTitleDetailApi
+} from "../../api/timeline.ts";
 import {SlideResponse} from "../../types/timeline.rest.ts";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 import {SelectValue} from "ant-design-vue/es/select";
 
 import "./manage.less";
+import {pick} from "lodash-es";
 
 export const Manage = defineComponent({
   name: 'Manage',
@@ -26,6 +44,18 @@ export const Manage = defineComponent({
 
     // 控制添加 事件的模态框
     const openAddSlide = ref<boolean>(false);
+
+    // 添加事件选择时间线绑定的数据
+    const slideValue = ref<SelectValue>(undefined);
+    const slideType = ref<string>('1');
+    const slideGroup = ref<string | undefined>(undefined);
+    const slideHeadline = ref<string|undefined>(undefined);
+    const slideText = ref<string|undefined>(undefined);
+    const slideStartDate: Ref<{year: undefined|number,month?:number,day?:number}> = ref({year: undefined, month: undefined, day: undefined});
+    const slideStartDateCEType = ref('add')
+    const slideEndDate = ref({year: undefined, month: undefined, day: undefined});
+    const slideEndDateCEType = ref('add')
+    // ----------------------------------------------------------------------------------------
 
     onMounted(() => {
       _init();
@@ -98,13 +128,32 @@ export const Manage = defineComponent({
     // 提交 添加事件的函数
     async function handleAddSlide() {
       console.log('add slide.');
-      openAddSlide.value = false;
+      console.log('====    slideValue:', slideStartDate.value);
+      if(!slideValue.value) return message.error("请选择时间线");
+      if(!slideHeadline.value) return message.error("请填写标题");
+      if(!slideText.value) return message.error("请填写内容");
+      if(!slideStartDate.value.year) return message.error("请填写事件时间");
+      slideAddApi({
+        id: slideValue.value as string,
+        type: slideType.value,
+        text: { headline: slideHeadline.value, text: slideText.value },
+        start_date: pick(slideStartDate.value, ['year', 'month', 'day']),
+        end_date: pick(slideStartDate.value, ['year', 'month', 'day']),
+        group: slideGroup.value,
+      }).then(() => {
+        openAddSlide.value = false;
+      })
     }
 
     // 取消添加
     async function handleCancelAddSlide() {
       openAddSlide.value = false;
       // TODO: 清理模态框的临时数据
+    }
+
+    function handleSlideSelectTimeline(value: SelectValue) {
+      console.log('-------------- select:', value);
+      slideValue.value = value;
     }
 
     return () => (
@@ -194,7 +243,70 @@ export const Manage = defineComponent({
           onOk={handleAddSlide}
           onCancel={handleCancelAddSlide}
           open={openAddSlide.value}>
-          <p>添加事件</p>
+          <h1 class={['mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>选择时间线</h1>
+          <Select
+            value={slideValue.value}
+            options={timelineOptions.value}
+            filterOption={handleFilterOption}
+            onChange={handleSlideSelectTimeline}
+            showSearch placeholder="选择..."
+            style="width: 200px">
+          </Select>
+          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>类型</h1>
+          <RadioGroup
+            value={slideType.value}
+            onChange={(e) => (slideType.value = e.target.value)}
+            buttonStyle="solid">
+            <RadioButton value='0'>Title</RadioButton>
+            <RadioButton value='1'>Slide</RadioButton>
+          </RadioGroup>
+          {
+            slideType.value === "1" && <div>
+              <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>分组</h1>
+              <Input value={slideGroup.value} onChange={(e) => slideGroup.value = e.target.value!} style="width: 300px"></Input>
+            </div>
+          }
+          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>正文</h1>
+          <Input
+            value={slideHeadline.value}
+            onChange={(e) => (slideHeadline.value = e.target.value!)}
+            placeholder={"标题"}
+            style="width: 300px"></Input>
+          <Textarea
+            value={slideText.value}
+            onChange={(e) => (slideText.value = e.target.value!)}
+            autoSize={{minRows: 10, maxRows: 30}}
+            placeholder={"内容"}
+            class={['mt-4']}></Textarea>
+
+          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>事件日期</h1>
+          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'medium', fontWeight: 'bolder'}}>开始时间</h1>
+          <InputNumber value={slideStartDate.value.year} min={-10000} max={5000} onChange={(val) => slideStartDate.value.year = val as number} style="width:150px">
+            {{
+              addonBefore: () => (<Select value={slideStartDateCEType.value}
+                                          onChange={(val) => (slideStartDateCEType.value = val as string)}
+                                          style="width:60px">
+                <SelectOption value="add">+</SelectOption>
+                <SelectOption value="minus">-</SelectOption>
+              </Select>)
+            }}
+          </InputNumber>
+          <InputNumber value={slideStartDate.value.month} min={1} max={12} onChange={(val) => slideStartDate.value.month = val as number} style="width:80px"></InputNumber>
+          <InputNumber value={slideStartDate.value.day} min={1} max={31} onChange={(val) => slideStartDate.value.day = val as number} style="width:80px"></InputNumber>
+
+          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'medium', fontWeight: 'bolder'}}>结束时间</h1>
+          <InputNumber value={slideEndDate.value.year} min={-10000} max={5000} style="width:150px">
+            {{
+              addonBefore: () => (<Select value={slideEndDateCEType.value}
+                                          onChange={(val) => (slideEndDateCEType.value = val as string)}
+                                          style="width:60px">
+                <SelectOption value="add">+</SelectOption>
+                <SelectOption value="minus">-</SelectOption>
+              </Select>)
+            }}
+          </InputNumber>
+          <InputNumber value={slideEndDate.value.month} min={1} max={12} style="width:80px"></InputNumber>
+          <InputNumber value={slideEndDate.value.day} min={1} max={31} style="width:80px"></InputNumber>
         </Modal>
       </div>
     )
