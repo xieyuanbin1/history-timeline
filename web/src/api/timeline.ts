@@ -29,3 +29,8 @@ export const slideAddApi = (body: RAddSlide) => {
 export const timelineUpdateApi = (id: string, name: string) => {
   return request.post<SlideResponse>('/timeline/update/title', { id, name });
 }
+
+// 删除 slide
+export const slideDeleteApi = (id: string) => {
+  return request.post(`/timeline/delete/slide`, { id });
+}

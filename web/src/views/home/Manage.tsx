@@ -18,7 +18,7 @@ import {
   Textarea
 } from "ant-design-vue";
 import {
-  slideAddApi,
+  slideAddApi, slideDeleteApi,
   timelineAddTitleApi,
   timelineDeleteApi,
   timelineListApi,
@@ -29,7 +29,7 @@ import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 import {SelectValue} from "ant-design-vue/es/select";
 
 import "./manage.less";
-import {cloneDeep, pick} from "lodash-es";
+import {cloneDeep} from "lodash-es";
 
 export const Manage = defineComponent({
   name: 'Manage',
@@ -94,7 +94,7 @@ export const Manage = defineComponent({
     const slideText = ref<string|undefined>(undefined);
     const slideStartDate: Ref<{year: undefined|number,month?:number,day?:number}> = ref({year: undefined, month: undefined, day: undefined});
     const slideStartDateCEType = ref('add')
-    const slideEndDate = ref({year: undefined, month: undefined, day: undefined});
+    const slideEndDate: Ref<{year?: number,month?:number,day?:number}> = ref({year: undefined, month: undefined, day: undefined});
     const slideEndDateCEType = ref('add')
     // ----------------------------------------------------------------------------------------
 
@@ -136,15 +136,17 @@ export const Manage = defineComponent({
     }
 
     // 删除 slide
-    function handleDeleteSlide(id: string) {
+    async function handleDeleteSlide(id: string) {
       console.log('delete::::::::::', id);
+      await slideDeleteApi(id);
+      if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
     }
 
     // 选择时间线
-    function handleSelectTimeline(value: SelectValue) {
+    async function handleSelectTimeline(value: SelectValue) {
       timelineValue.value = value;
       console.log('-------------- select:', value);
-      handleTimelineDetail(value as string).then()
+      await handleTimelineDetail(value as string)
     }
     // 选择时间线过滤操作
     const handleFilterOption = (input: string, option: any) => {
@@ -168,16 +170,35 @@ export const Manage = defineComponent({
       if(!slideHeadline.value) return message.error("请填写标题");
       if(!slideText.value) return message.error("请填写内容");
       if(!slideStartDate.value.year) return message.error("请填写事件时间");
-      slideAddApi({
+      console.log('slideStartDate:::', slideStartDate);
+      const slide: {
+        id: string;
+        type: string;
+        text: { headline: string, text: string };
+        start_date: {year: number, month: number|undefined, day: number|undefined },
+        end_date?: {year: number, month: number|undefined, day: number|undefined },
+        group?: string,
+      } = {
         id: slideValue.value as string,
         type: slideType.value,
         text: { headline: slideHeadline.value, text: slideText.value },
-        start_date: pick(slideStartDate.value, ['year', 'month', 'day']) as { year: number },
-        end_date: pick(slideStartDate.value, ['year', 'month', 'day']) as { year: number },
-        group: slideGroup.value,
-      }).then(() => {
-        openAddSlide.value = false;
-      })
+        start_date: {
+          year: slideStartDateCEType.value === 'minus' ? -slideStartDate.value.year : slideStartDate.value.year,
+          month: slideStartDate.value.month,
+          day: slideStartDate.value.day
+        },
+      };
+      if (slideEndDate.value.year) {
+        slide.end_date = {
+          year: slideEndDateCEType.value === 'minus' ? -slideEndDate.value.year : slideEndDate.value.year,
+          month: slideEndDate.value.month,
+          day: slideEndDate.value.day
+        }
+      }
+      if (slideGroup.value) slide.group = slideGroup.value;
+      await slideAddApi(slide)
+      if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
+      openAddSlide.value = false;
     }
 
     // 取消添加

@@ -12,6 +12,7 @@ import {
   TimelineUpdateTitleDTO,
   TimelineUpdateTitleSchema
 } from "./timeline.dto";
+import {pick} from "lodash";
 
 @Controller('timeline')
 export class TimelineController {
@@ -48,8 +49,16 @@ export class TimelineController {
     const ids = events.map(event => event.id);
     const eventsSlide = await this.timelineService.getEventsDetail(ids);
     console.log('------------------------ titleSlide:', titleSlide);
-    console.log('------------------------ eventsSlide:', eventsSlide);
-    return { title: titleSlide, events: eventsSlide };
+    const eventsList = eventsSlide.map(slide => {
+      const pickList = ['id', 'pid', 'type', 'text', 'start_date'];
+      if (slide.end_date) pickList.push('end_date');
+      if (slide.background) pickList.push('background');
+      if (slide.media) pickList.push('media');
+      if (slide.group) pickList.push('group');
+      return pick(slide, pickList);
+    });
+    console.log('------------------------ eventsList:', eventsList);
+    return { title: titleSlide, events: eventsList };
   }
 
   // 添加时间线 仅添加到 timeline

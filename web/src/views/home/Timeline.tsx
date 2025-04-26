@@ -24,9 +24,9 @@ export const Timeline = defineComponent({
     };
 
     // 选择时间线
-    function handleSelectTimeline(value: SelectValue) {
+    async function handleSelectTimeline(value: SelectValue) {
       timelineValue.value = value;
-      renderTimeline().then();
+      await renderTimeline();
     }
 
     async function renderTimeline() {

@@ -146,13 +146,13 @@ export class TimelineService {
     const background = details.background && pick(details.background, ['url', 'alt', 'color']);
     const text = details.text && pick(details.text, ['headline', 'text']);
 
-    return { ...pick(details, ['id', 'pid', 'type']), start_date, end_date, media, background, text };
+    return { ...pick(details, ['id', 'pid', 'type', 'group']), start_date, end_date, media, background, text };
   }
 
   // 获取 events 详情
   async getEventsDetail(ids: string[]) {
     const details = await this.slideRepo.createQueryBuilder('sl')
-      .select(['sl.id', 'sl.pid', 'sl.type'])
+      .select(['sl.id', 'sl.pid', 'sl.type', 'sl.group'])
       .leftJoinAndMapOne('sl.start_date', DateEntity, 'sd', 'sl.id=sd.pid and sd.type=0')
       .leftJoinAndMapOne('sl.end_date', DateEntity, 'ed', 'sl.id=ed.pid and ed.type=1')
       .leftJoinAndMapOne('sl.media', MediaEntity, 'md', 'sl.id=md.pid')
@@ -167,7 +167,7 @@ export class TimelineService {
       const media = slide.media && pick(slide.media, ['url', 'thumbnail', 'title']);
       const background = slide.background && pick(slide.background, ['url', 'alt', 'color']);
       const text = slide.text && pick(slide.text, ['headline', 'text']);
-      return { ...pick(slide, ['id', 'pid', 'type']), start_date, end_date, media, background, text };
+      return { ...pick(slide, ['id', 'pid', 'type', 'group']), start_date, end_date, media, background, text };
     });
   }
 
