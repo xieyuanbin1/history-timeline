@@ -24,3 +24,8 @@ export const timelineDeleteApi = (id: string) => {
 export const slideAddApi = (body: RAddSlide) => {
   return request.post(`/timeline/add/slide`, body);
 }
+
+// 更新时间线 name
+export const timelineUpdateApi = (id: string, name: string) => {
+  return request.post<SlideResponse>('/timeline/update/title', { id, name });
+}

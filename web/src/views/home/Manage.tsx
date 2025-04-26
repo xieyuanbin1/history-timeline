@@ -1,14 +1,20 @@
-import {defineComponent, onMounted, Ref, ref} from "vue";
+import {defineComponent, onMounted, reactive, Ref, ref, UnwrapRef} from "vue";
 import {
   Button,
   Card,
   CardMeta,
-  Input, InputNumber,
+  Input,
+  InputNumber,
   InputSearch,
   message,
-  Modal, RadioButton, RadioGroup,
-  Select, SelectOption,
+  Modal,
+  Popconfirm,
+  RadioButton,
+  RadioGroup,
+  Select,
+  SelectOption,
   SelectProps,
+  Table,
   Textarea
 } from "ant-design-vue";
 import {
@@ -16,14 +22,14 @@ import {
   timelineAddTitleApi,
   timelineDeleteApi,
   timelineListApi,
-  timelineTitleDetailApi
+  timelineTitleDetailApi, timelineUpdateApi
 } from "../../api/timeline.ts";
 import {SlideResponse} from "../../types/timeline.rest.ts";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 import {SelectValue} from "ant-design-vue/es/select";
 
 import "./manage.less";
-import {pick} from "lodash-es";
+import {cloneDeep, pick} from "lodash-es";
 
 export const Manage = defineComponent({
   name: 'Manage',
@@ -38,6 +44,41 @@ export const Manage = defineComponent({
 
     // 添加时间线的输入框值
     const timelineAddNameValue = ref('');
+    const timelineTableColumns = [
+      {
+        title: '名称',
+        dataIndex: 'name',
+        width: '70%',
+      },
+      {
+        title: '操作',
+        dataIndex: 'operation',
+      },
+    ];
+    const timelineDataSource = ref(timelineList);
+    const editableData: UnwrapRef<Record<string, {id: string; name: string}>> = reactive({});
+    const edit = (key: string) => {
+      console.log('---------------key:;', key);
+      console.log('---------------timelineDataSource:;', timelineDataSource.value);
+      editableData[key] = cloneDeep(timelineDataSource.value.filter(item => key === item.id)[0]);
+    };
+    const save = async (key: string) => {
+      console.log('--------------- save key:;', key);
+      console.log('--------------- editableData[key]:;', editableData[key]);
+      if (editableData[key] && editableData[key].name) {
+        await timelineUpdateApi(key, editableData[key].name);
+        await handleTimelineList()
+        Object.assign(timelineDataSource.value.filter(item => key === item.id)[0], editableData[key]);
+        delete editableData[key];
+      } else {
+        message.error("数据不能为空");
+      }
+    };
+    const cancel = (key: string) => {
+      console.log('---------------cancel key:;', key);
+      console.log('---------------cancel key:;', editableData);
+      delete editableData[key];
+    };
 
     // 控制显示编辑时间线模态框
     const openTimeline = ref<boolean>(false);
@@ -80,10 +121,7 @@ export const Manage = defineComponent({
     // 获取时间线详细
     async function handleTimelineDetail(id: string) {
       try {
-        console.log('---------- detail:', id);
-        const data = await timelineTitleDetailApi(id);
-        console.log('---------- data:', data);
-        slides.value = data;
+        slides.value = await timelineTitleDetailApi(id);
       } catch (e) {
         console.log('[error] slide detail:', e)
       }
@@ -115,20 +153,17 @@ export const Manage = defineComponent({
 
     // 添加时间线 timeline.name
     async function handleAddTimelineName() {
-      console.log('-----value:', timelineAddNameValue.value);
       if (!timelineAddNameValue.value) return message.error("时间线名称不能为空");
       const add = await timelineAddTitleApi({
         name: timelineAddNameValue.value,
       });
-      console.log('==========', add)
+      console.log('-------------- select:', add);
       timelineAddNameValue.value = '';
       handleTimelineList().then();
     }
 
     // 提交 添加事件的函数
     async function handleAddSlide() {
-      console.log('add slide.');
-      console.log('====    slideValue:', slideStartDate.value);
       if(!slideValue.value) return message.error("请选择时间线");
       if(!slideHeadline.value) return message.error("请填写标题");
       if(!slideText.value) return message.error("请填写内容");
@@ -137,8 +172,8 @@ export const Manage = defineComponent({
         id: slideValue.value as string,
         type: slideType.value,
         text: { headline: slideHeadline.value, text: slideText.value },
-        start_date: pick(slideStartDate.value, ['year', 'month', 'day']),
-        end_date: pick(slideStartDate.value, ['year', 'month', 'day']),
+        start_date: pick(slideStartDate.value, ['year', 'month', 'day']) as { year: number },
+        end_date: pick(slideStartDate.value, ['year', 'month', 'day']) as { year: number },
         group: slideGroup.value,
       }).then(() => {
         openAddSlide.value = false;
@@ -165,7 +200,7 @@ export const Manage = defineComponent({
             options={timelineOptions.value}
             filterOption={handleFilterOption}
             onChange={handleSelectTimeline}
-            showSearch placeholder="选择..."
+            showSearch placeholder="选择查看..."
             style="width: 200px">
           </Select>
           <Button onClick={handleTimelineList}>刷新</Button>
@@ -208,28 +243,43 @@ export const Manage = defineComponent({
           onOk={() => openTimeline.value = false}
           onCancel={() => openTimeline.value = false}
           open={openTimeline.value}>
-          <div class={['list', 'w-2/12', 'p-4']}>
+          <div class={['list', 'p-4']}>
             <div>
               <InputSearch
                 value={timelineAddNameValue.value}
                 onChange={(e) => timelineAddNameValue.value = e.target.value!}
                 placeholder="添加时间线"
-                onSearch={handleAddTimelineName}>
+                onSearch={handleAddTimelineName}
+                class={['w-2/12',]}>
                 {{
                   enterButton: () => <Button>新增</Button>
                 }}
               </InputSearch>
             </div>
-            <ul>
-              {
-                timelineList.value.map((tl: { id: string, name: string }) => {
-                  return <li class={['cursor-pointer']} key={tl.id}>
-                    {tl.name}
-                    <Button onClick={() => handleTimelineDel(tl.id)}>删除</Button>
-                  </li>
-                })
-              }
-            </ul>
+            <Table columns={timelineTableColumns} dataSource={timelineDataSource.value} bordered class={['mt-2']}>
+              {{
+                bodyCell: ({ column, text, record }: any) => {
+                  if (['name'].includes(column.dataIndex)) {
+                    if (editableData[record.id]) return <Input
+                      value={editableData[record.id][column.dataIndex as "name"]}
+                      onChange={(e) => {editableData[record.id][column.dataIndex! as "name"]=e.target.value!}}
+                      class={['-ml-1']}>
+                    </Input>;
+                    return <div>{text}</div>;
+                  }
+                  if (column.dataIndex === 'operation') {
+                    if (editableData[record.id]) return <span>
+                      <a onClick={() => save(record.id)} class={['mr-2']}>保存</a>
+                      <a onClick={() => cancel(record.id)}>取消</a>
+                    </span>;
+                    return <span>
+                      <a onClick={() => edit(record.id)} class={['mr-2']}>编辑</a>
+                      <Popconfirm title="确定删除?" okText="确定" cancelText="取消" onConfirm={() => handleTimelineDel(record.id)}><a>删除</a></Popconfirm>
+                    </span>
+                  }
+                }
+              }}
+            </Table>
           </div>
         </Modal>
 
