@@ -13,6 +13,19 @@ services:
     networks:
       - history-network
 
+  frontend:
+    build:
+      context: ./web
+    container_name: web
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - history-network
+    environment:
+      REACT_APP_API_URL: http://backend:3000
+
   mongo:
     image: mongo:4.4.29
     container_name: mongo
