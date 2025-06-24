@@ -94,11 +94,11 @@ class RequestHttp {
   }
 
   // 常用方法封装
-  get<T>(url: string, params?: object): Promise<T> {
-    return this.service.get(url, { params });
+  get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.service.get(url, config);
   }
-  post<T>(url: string, body?: object): Promise<T> {
-    return this.service.post(url, body);
+  post<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.service.post(url, config);
   }
 }
 

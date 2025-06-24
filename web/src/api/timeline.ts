@@ -14,23 +14,23 @@ export const timelineTitleDetailApi = (id: string) => {
 }
 
 export const timelineAddTitleApi = (title: TimelineAddTitle) => {
-  return request.post('/timeline/add/title', title);
+  return request.post('/timeline/add/title', { data: title });
 }
 
 export const timelineDeleteApi = (id: string) => {
-  return request.post(`/timeline/delete`, { id });
+  return request.post(`/timeline/delete`, { data: id });
 }
 
 export const slideAddApi = (body: RAddSlide) => {
-  return request.post(`/timeline/add/slide`, body);
+  return request.post(`/timeline/add/slide`, { data: body });
 }
 
 // 更新时间线 name
 export const timelineUpdateApi = (id: string, name: string) => {
-  return request.post<SlideResponse>('/timeline/update/title', { id, name });
+  return request.post<SlideResponse>('/timeline/update/title', { data: { id, name } });
 }
 
 // 删除 slide
 export const slideDeleteApi = (id: string) => {
-  return request.post(`/timeline/delete/slide`, { id });
+  return request.post(`/timeline/delete/slide`, { data: id });
 }
