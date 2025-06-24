@@ -1,7 +1,8 @@
 FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install pnpm@9.15.9 -g
+RUN pnpm install
 COPY . .
-RUN npm run build
+RUN pnpm run build
 CMD ["node", "dist/main.js"]
