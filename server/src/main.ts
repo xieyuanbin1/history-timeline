@@ -42,4 +42,4 @@ async function bootstrap() {
   await app.listen(PORT);
   logger.log(`>>>> Server start on port: ${PORT}, enjoy it. <<<<`);
 }
-bootstrap().catch();
+void bootstrap().then().catch();

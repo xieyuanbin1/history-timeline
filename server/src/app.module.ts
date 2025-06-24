@@ -1,9 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -49,7 +44,7 @@ import mongoose from 'mongoose';
 export class AppModule implements NestModule {
   constructor() {
     // 设置全局转换 添加 createAt updateAt 字段
-    mongoose.plugin((schema) => {
+    mongoose.plugin(schema => {
       // schema.set('toJSON', {
       //   virtuals: true, // 保留 virtual 字段
       //   versionKey: false, // 去掉 __v
@@ -63,9 +58,6 @@ export class AppModule implements NestModule {
     // 保证所有模块都能获取到 RequestContextService 中的 getRequestId
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(
-        { path: '*path', method: RequestMethod.ALL },
-        { path: '/', method: RequestMethod.ALL },
-      );
+      .forRoutes({ path: '*path', method: RequestMethod.ALL }, { path: '/', method: RequestMethod.ALL });
   }
 }

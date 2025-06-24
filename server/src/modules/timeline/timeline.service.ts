@@ -38,12 +38,29 @@ export class TimelineService {
     return this.timeModel.findByIdAndDelete(id);
   }
 
-  // 添加 事件
-  addSlide(id: string, slide: SlideAddDTO) {
-    return this.timeModel.findByIdAndUpdate(
-      id,
-      { $push: { events: slide } },
+  // 添加 events 事件
+  addEventsSlide(id: string, slide: SlideAddDTO) {
+    return this.timeModel.findByIdAndUpdate(id, { $push: { events: slide } }, { new: true });
+  }
+
+  // 删除 events 事件
+  deleteEventsSlide(timeId: string, slideId: string) {
+    return this.timeModel.findByIdAndUpdate(timeId, { $pull: { events: { _id: slideId } } }, { new: true });
+  }
+
+  // 添加 title 事件
+  async addTitleSlide(id: string, slide: SlideAddDTO) {
+    const time = await this.timeModel.findById(id);
+    if (time?.title) throw new HttpException('已存在标题信息', 10002);
+    return this.timeModel.findOneAndUpdate(
+      { _id: id, title: { $exists: false } },
+      { $set: { title: slide } },
       { new: true },
     );
+  }
+
+  // 删除 title slide 数据
+  deleteTitleSlide(timeId: string, slideId: string) {
+    return this.timeModel.findByIdAndUpdate(timeId, { $unset: { title: 1 } }, { new: true });
   }
 }

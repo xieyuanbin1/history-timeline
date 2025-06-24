@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { TimelineService } from './timeline.service';
 import { SlideAddDTO, TimelineAddDTO } from './timeline.dto';
 
@@ -38,20 +30,10 @@ export class TimelineController {
   }
 
   // 添加时间线 事件
-  @Post('slide/:id')
+  @Post('event/:id')
   addSlide(@Param('id') id: string, @Body() slide: SlideAddDTO) {
-    const {
-      start_date,
-      end_date,
-      text,
-      media,
-      group,
-      background,
-      display_date,
-      unique_id,
-      autolink,
-    } = slide;
-    return this.timeSer.addSlide(id, {
+    const { start_date, end_date, text, media, group, background, display_date, unique_id, autolink } = slide;
+    return this.timeSer.addEventsSlide(id, {
       start_date,
       end_date,
       text,
@@ -62,5 +44,34 @@ export class TimelineController {
       autolink,
       unique_id,
     });
+  }
+
+  // 删除 event slide
+  @Delete(':timeId/event/:slideId')
+  deleteSlide(@Param('timeId') timeId: string, @Param('slideId') slideId: string) {
+    return this.timeSer.deleteEventsSlide(timeId, slideId);
+  }
+
+  // 添加 title 事件
+  @Post('title/:id')
+  addTitle(@Param('id') id: string, @Body() slide: SlideAddDTO) {
+    const { start_date, end_date, text, media, group, background, display_date, unique_id, autolink } = slide;
+    return this.timeSer.addTitleSlide(id, {
+      start_date,
+      end_date,
+      text,
+      media,
+      group,
+      background,
+      display_date,
+      unique_id,
+      autolink,
+    });
+  }
+
+  // 删除 title slide
+  @Delete(':timeId/title/:slideId')
+  deleteTitle(@Param('timeId') timeId: string, @Param('slideId') slideId: string) {
+    return this.timeSer.deleteTitleSlide(timeId, slideId);
   }
 }

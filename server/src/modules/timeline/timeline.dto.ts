@@ -1,11 +1,5 @@
 import { Type } from 'class-transformer';
-import {
-  IsNumber,
-  IsObject,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsNumber, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class TimelineAddDTO {
   @IsString() name: string;
