@@ -4,7 +4,7 @@ services:
     build:
       context: ./server
     container_name: server
-    expose:
+    ports:
       - "3000:3000"
     depends_on:
       - mongo
