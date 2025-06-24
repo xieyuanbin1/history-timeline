@@ -5,7 +5,7 @@ services:
       context: ./server
     container_name: server
     expose:
-      - 3000
+      - "3000:3000"
     depends_on:
       - mongo
     environment:
