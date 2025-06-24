@@ -9,7 +9,7 @@ services:
     depends_on:
       - mongo
     environment:
-      MONGODB_URI: mongodb://mongo:27017/history-db
+      MONGODB_URI: mongodb://mongo:27018/history-db
     networks:
       - history-network
 
@@ -17,7 +17,7 @@ services:
     image: mongo:4.4.29
     container_name: mongo
     ports:
-      - "27017:27017"  # 可选，仅供本地连接调试
+      - "27018:27017"  # 可选，仅供本地连接调试
     volumes:
       - mongo-data:/data/db
     networks:
