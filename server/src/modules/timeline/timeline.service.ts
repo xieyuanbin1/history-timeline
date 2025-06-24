@@ -16,6 +16,10 @@ export class TimelineService {
     return this.timeModel.find();
   }
 
+  detail(id: string) {
+    return this.timeModel.findById(id);
+  }
+
   async addTimeline(timeline: TimelineAddDTO) {
     const count = await this.timeModel.countDocuments({ name: timeline.name });
     if (count) {

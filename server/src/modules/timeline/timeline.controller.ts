@@ -12,6 +12,12 @@ export class TimelineController {
     return this.timeSer.pureList();
   }
 
+  // 返回详细
+  @Get(':id')
+  timeline(@Param('id') id: string) {
+    return this.timeSer.detail(id);
+  }
+
   @Post()
   addTimeline(@Body() time: TimelineAddDTO) {
     const { name, weight } = time;

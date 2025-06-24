@@ -18,7 +18,7 @@ async function bootstrap() {
   const contextService = app.get(RequestIdService);
 
   // ✅ api 前缀
-  app.setGlobalPrefix('/api/timeline');
+  app.setGlobalPrefix('/api');
 
   // ✅ 全局管道 用于处理参数校验格式化
   app.useGlobalPipes(

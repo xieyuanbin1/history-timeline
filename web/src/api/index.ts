@@ -13,7 +13,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 //   data?: T;
 // }
 
-const URL = '/api/timeline'
+const URL = '/api'
 enum RequestEnums {
   TIMEOUT = 30000,
   OVERDUE = 600, // 登录失效
