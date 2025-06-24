@@ -9,7 +9,7 @@ services:
     depends_on:
       - mongo
     environment:
-      MONGODB_URI: mongodb://mongo:27017/history-db
+      DB_URI: mongodb://mongo:27017/history-db
     networks:
       - history-network
 

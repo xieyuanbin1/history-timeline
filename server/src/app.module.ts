@@ -1,8 +1,18 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RequestIdMiddleware } from './modules/request-id/request-id.middleware';
+import { RequestIdService } from './modules/request-id/request-id.service';
+import { IdService } from './modules/request-id/id.service';
+import { TimelineModule } from './modules/timeline/timeline.module';
+import mongoose from 'mongoose';
 
 @Module({
   imports: [
@@ -13,10 +23,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (conf: ConfigService) => ({
-        uri: conf.get<string>('MONGODB_URI'), // 如：mongodb://localhost:27017/mydb
-        // user: conf.get<string>('DB_USER'),
-        // pass: conf.get<string>('DB_PASS'),
-        // dbName: conf.get<string>('DB_NAME'),
+        uri: conf.get<string>('DB_URI'), // 如：mongodb://localhost:27017/my
+        user: conf.get<string>('DB_USER'),
+        pass: conf.get<string>('DB_PASS'),
+        dbName: conf.get<string>('DB_NAME'),
         // authSource: conf.get<string>('MONGODB_AUTH_SOURCE') || 'admin',
         // 无限重连相关配置
         retryWrites: true,
@@ -31,8 +41,31 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         // 注意，Mongoose v6.x 开始默认自动重连
       }),
     }),
+    TimelineModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, RequestIdService, IdService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  constructor() {
+    // 设置全局转换 添加 createAt updateAt 字段
+    mongoose.plugin((schema) => {
+      // schema.set('toJSON', {
+      //   virtuals: true, // 保留 virtual 字段
+      //   versionKey: false, // 去掉 __v
+      //   transform: (_doc, ret) => {},
+      // });
+    });
+  }
+  configure(consumer: MiddlewareConsumer) {
+    // '/'     匹配根路由
+    // '*path' 匹配其他子路由
+    // 保证所有模块都能获取到 RequestContextService 中的 getRequestId
+    consumer
+      .apply(RequestIdMiddleware)
+      .forRoutes(
+        { path: '*path', method: RequestMethod.ALL },
+        { path: '/', method: RequestMethod.ALL },
+      );
+  }
+}
