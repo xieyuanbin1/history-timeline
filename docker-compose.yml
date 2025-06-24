@@ -16,8 +16,8 @@ services:
   mongo:
     image: mongo:4.4.29
     container_name: mongo
-    ports:
-      - "27018:27017"  # 可选，仅供本地连接调试
+    expose:
+      - 27017
     volumes:
       - mongo-data:/data/db
     networks:
