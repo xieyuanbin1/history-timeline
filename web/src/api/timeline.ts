@@ -14,20 +14,21 @@ export const timelineTitleDetailApi = (id: string) => {
 }
 
 export const timelineAddTitleApi = (title: TimelineAddTitle) => {
-  return request.post('/timeline/add/title', { data: title });
+  return request.post('/timeline', { name: title.name });
 }
 
+// 删除时间线
 export const timelineDeleteApi = (id: string) => {
-  return request.post(`/timeline/delete`, { data: id });
+  return request.delete(`/timeline/${id}`);
 }
 
-export const slideAddApi = (body: RAddSlide) => {
-  return request.post(`/timeline/add/slide`, { data: body });
+export const slideAddApi = (id: string, body: RAddSlide) => {
+  return request.post(`/timeline/event/${id}`, body);
 }
 
 // 更新时间线 name
 export const timelineUpdateApi = (id: string, name: string) => {
-  return request.post<SlideResponse>('/timeline/update/title', { data: { id, name } });
+  return request.patch<SlideResponse>(`/timeline/${id}`, { name });
 }
 
 // 删除 slide

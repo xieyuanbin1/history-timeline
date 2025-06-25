@@ -4,15 +4,10 @@ import {
   Card,
   CardMeta,
   Input,
-  InputNumber,
   InputSearch,
   message,
   Modal,
   Popconfirm,
-  RadioButton,
-  RadioGroup,
-  Select,
-  SelectOption,
   SelectProps,
   Table,
   Textarea
@@ -27,6 +22,8 @@ import {
 import {SlideResponse} from "../../types/timeline.rest.ts";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 import {SelectValue} from "ant-design-vue/es/select";
+import flatpickr from "flatpickr";
+import dayjs from 'dayjs';
 
 import "./manage.less";
 import {cloneDeep} from "lodash-es";
@@ -34,7 +31,10 @@ import {cloneDeep} from "lodash-es";
 export const Manage = defineComponent({
   name: 'Manage',
   setup(_props, _ctx) {
-    const timelineList = ref<{id: string, name: string}[]>([]);
+    const slideStartDateEle = ref<HTMLDivElement | null>(null); // slideStartDateEle
+    const slideEndDateEle = ref<HTMLDivElement | null>(null); // slideStartDateEle
+
+    const timelineList = ref<{_id: string, name: string}[]>([]);
     const slides = ref<SlideResponse>({events: []});
 
     // 时间线下拉框数据
@@ -56,20 +56,26 @@ export const Manage = defineComponent({
       },
     ];
     const timelineDataSource = ref(timelineList);
-    const editableData: UnwrapRef<Record<string, {id: string; name: string}>> = reactive({});
+    const editableData: UnwrapRef<Record<string, {_id: string; name: string}>> = reactive({});
     const edit = (key: string) => {
       console.log('---------------key:;', key);
       console.log('---------------timelineDataSource:;', timelineDataSource.value);
-      editableData[key] = cloneDeep(timelineDataSource.value.filter(item => key === item.id)[0]);
+      editableData[key] = cloneDeep(timelineDataSource.value.filter(item => key === item._id)[0]);
     };
     const save = async (key: string) => {
       console.log('--------------- save key:;', key);
       console.log('--------------- editableData[key]:;', editableData[key]);
       if (editableData[key] && editableData[key].name) {
-        await timelineUpdateApi(key, editableData[key].name);
-        await handleTimelineList()
-        Object.assign(timelineDataSource.value.filter(item => key === item.id)[0], editableData[key]);
-        delete editableData[key];
+        try {
+          await timelineUpdateApi(key, editableData[key].name);
+          await handleTimelineList()
+          Object.assign(timelineDataSource.value.filter(item => key === item._id)[0], editableData[key]);
+          delete editableData[key];
+        } catch (error: any) {
+          console.error('更新失败:', error);
+          // 这里可以根据实际情况处理错误，比如显示错误信息
+          message.error(error.message || "更新失败");
+        }
       } else {
         message.error("数据不能为空");
       }
@@ -92,14 +98,19 @@ export const Manage = defineComponent({
     const slideGroup = ref<string | undefined>(undefined);
     const slideHeadline = ref<string|undefined>(undefined);
     const slideText = ref<string|undefined>(undefined);
-    const slideStartDate: Ref<{year: undefined|number,month?:number,day?:number}> = ref({year: undefined, month: undefined, day: undefined});
+    const slideStartDate: Ref<string|undefined> = ref(undefined);
     const slideStartDateCEType = ref('add')
-    const slideEndDate: Ref<{year?: number,month?:number,day?:number}> = ref({year: undefined, month: undefined, day: undefined});
+    const slideEndDate: Ref<string|undefined> = ref(undefined);
     const slideEndDateCEType = ref('add')
     // ----------------------------------------------------------------------------------------
 
     onMounted(() => {
       _init();
+      // const fp = flatpickr(slideStartDateEle.value!, { allowInput: true, dateFormat: "Y-m-d", onChange: (selectedDates, dateStr) => {
+      //     console.log('flatpickr selected date:', selectedDates, dateStr);
+      //     selectedDate.value = dateStr; // 这里可以处理选中的日期
+      //   }});
+      // console.log('Manage mounted:::::', fp);
     })
 
     function _init() {
@@ -112,7 +123,7 @@ export const Manage = defineComponent({
         const list = await timelineListApi();
         console.log('==========', list)
         timelineList.value = list;
-        timelineOptions.value = list.map(t => ({value: t.id, label: t.name}))
+        timelineOptions.value = list.map(t => ({value: t._id, label: t.name}))
       } catch (e) {
         console.log('[ERROR] 获取时间线列表:', e);
       }
@@ -121,6 +132,13 @@ export const Manage = defineComponent({
     // 获取时间线详细
     async function handleTimelineDetail(id: string) {
       try {
+        if (!id) {
+          message.error("请选择时间线");
+          slides.value = {events: []};
+          timelineValue.value = undefined;
+          console.log('handleTimelineDetail: id is empty'); // 直接返回
+          return;
+        }
         slides.value = await timelineTitleDetailApi(id);
       } catch (e) {
         console.log('[error] slide detail:', e)
@@ -144,14 +162,10 @@ export const Manage = defineComponent({
 
     // 选择时间线
     async function handleSelectTimeline(value: SelectValue) {
-      timelineValue.value = value;
       console.log('-------------- select:', value);
+      timelineValue.value = value;
       await handleTimelineDetail(value as string)
     }
-    // 选择时间线过滤操作
-    const handleFilterOption = (input: string, option: any) => {
-      return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
-    };
 
     // 添加时间线 timeline.name
     async function handleAddTimelineName() {
@@ -169,8 +183,10 @@ export const Manage = defineComponent({
       if(!slideValue.value) return message.error("请选择时间线");
       if(!slideHeadline.value) return message.error("请填写标题");
       if(!slideText.value) return message.error("请填写内容");
-      if(!slideStartDate.value.year) return message.error("请填写事件时间");
-      console.log('slideStartDate:::', slideStartDate);
+      if(!slideStartDate.value) return message.error("请填写事件时间");
+      console.log('slideStartDate:::', dayjs(slideStartDate.value));
+      const startDate = dayjs(slideStartDate.value);
+      if (!startDate.isValid()) return message.error("开始时间格式不正确");
       const slide: {
         id: string;
         type: string;
@@ -183,22 +199,34 @@ export const Manage = defineComponent({
         type: slideType.value,
         text: { headline: slideHeadline.value, text: slideText.value },
         start_date: {
-          year: slideStartDateCEType.value === 'minus' ? -slideStartDate.value.year : slideStartDate.value.year,
-          month: slideStartDate.value.month,
-          day: slideStartDate.value.day
+          year: startDate.year(),
+          month: startDate.month() + 1, // month 是从 0 开始的
+          day: startDate.date(),
         },
       };
-      if (slideEndDate.value.year) {
+      if (slideEndDate.value) {
+        const endDate = dayjs(slideEndDate.value);
+        if (!endDate.isValid()) return message.error("结束时间格式不正确");
+        if (endDate.isBefore(startDate)) return message.error("结束时间不能早于开始时间");
+        // 如果有结束时间
+        console.log('slideEndDate:::', dayjs(slideEndDate.value));
+        // 处理结束时间
         slide.end_date = {
-          year: slideEndDateCEType.value === 'minus' ? -slideEndDate.value.year : slideEndDate.value.year,
-          month: slideEndDate.value.month,
-          day: slideEndDate.value.day
+          year: endDate.year(),
+          month: endDate.month() + 1, // month 是从 0 开始的
+          day: endDate.date(),
         }
       }
       if (slideGroup.value) slide.group = slideGroup.value;
-      await slideAddApi(slide)
-      if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
-      openAddSlide.value = false;
+      try {
+        await slideAddApi(slide.id, slide)
+        if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
+        openAddSlide.value = false;
+      } catch (error: any) {
+        console.error('添加事件失败:', error);
+        message.error(error.message || "添加事件失败");
+        return;
+      }
     }
 
     // 取消添加
@@ -212,21 +240,57 @@ export const Manage = defineComponent({
       slideValue.value = value;
     }
 
+    // 打开新增事件弹框 初始化数据
+    function handleInitAddSlide() {
+      openAddSlide.value = true;
+      slideValue.value = undefined;
+      slideType.value = '1'; // 默认事件类型
+      slideGroup.value = undefined;
+      slideHeadline.value = undefined;
+      slideText.value = undefined;
+      slideStartDate.value = undefined;
+      slideStartDateCEType.value = 'add';
+      slideEndDate.value = undefined;
+      slideEndDateCEType.value = 'add';
+      // 清理 flatpickr 的值
+      console.log('flatpickr mounted:', slideStartDateEle.value);
+      setTimeout(() => {
+        if (slideStartDateEle.value) {
+          const fp = flatpickr(slideStartDateEle.value!, { allowInput: true, dateFormat: "Y-m-d", onChange: (selectedDates, dateStr) => {
+            console.log('flatpickr selected date:', selectedDates, dateStr);
+            slideStartDate.value = dateStr; // 这里可以处理选中的日期
+          }});
+          console.log('flatpickr mounted:', fp);
+        }
+        if (slideEndDateEle.value) {
+          const fp = flatpickr(slideEndDateEle.value!, { allowInput: true, dateFormat: "Y-m-d", onChange: (selectedDates, dateStr) => {
+            console.log('flatpickr selected date:', selectedDates, dateStr);
+            slideStartDate.value = dateStr; // 这里可以处理选中的日期
+          }});
+          console.log('flatpickr mounted:', fp);
+        }
+      }, 100);
+    }
+
     return () => (
       <div class={["manage-container", 'p-4']}>
         {/* 新增等操作*/}
         <div>
-          <Select
+          <select
             value={timelineValue.value}
-            options={timelineOptions.value}
-            filterOption={handleFilterOption}
-            onChange={handleSelectTimeline}
-            showSearch placeholder="选择查看..."
+            onChange={(e: any) => handleSelectTimeline(e.target.value)}
+            placeholder="选择查看..."
             style="width: 200px">
-          </Select>
-          <Button onClick={handleTimelineList}>刷新</Button>
-          <Button onClick={() => openTimeline.value = true}>管理时间线</Button>
-          <Button onClick={() => openAddSlide.value = true}>新增事件</Button>
+            <option value="" key="">-- 选择时间线 --</option>
+            {
+              timelineOptions.value!.map(t => (
+                <option value={t.value} key={t.value!}>{t.label}</option>
+              ))
+            }
+          </select>
+          <button onClick={handleTimelineList}>刷新</button>
+          <button onClick={() => openTimeline.value = true}>管理时间线</button>
+          <button onClick={handleInitAddSlide}>新增事件</button>
         </div>
 
         <div class={['flex']}>
@@ -257,10 +321,9 @@ export const Manage = defineComponent({
         {/*编辑操作时间线*/}
         <Modal
           title="时间线"
-          width="100%"
+          width="80%"
           okText="确定"
           cancelText="取消"
-          wrapClassName="full-modal"
           onOk={() => openTimeline.value = false}
           onCancel={() => openTimeline.value = false}
           open={openTimeline.value}>
@@ -281,21 +344,21 @@ export const Manage = defineComponent({
               {{
                 bodyCell: ({ column, text, record }: any) => {
                   if (['name'].includes(column.dataIndex)) {
-                    if (editableData[record.id]) return <Input
-                      value={editableData[record.id][column.dataIndex as "name"]}
-                      onChange={(e) => {editableData[record.id][column.dataIndex! as "name"]=e.target.value!}}
+                    if (editableData[record._id]) return <Input
+                      value={editableData[record._id][column.dataIndex as "name"]}
+                      onChange={(e) => {editableData[record._id][column.dataIndex! as "name"]=e.target.value!}}
                       class={['-ml-1']}>
                     </Input>;
                     return <div>{text}</div>;
                   }
                   if (column.dataIndex === 'operation') {
-                    if (editableData[record.id]) return <span>
-                      <a onClick={() => save(record.id)} class={['mr-2']}>保存</a>
-                      <a onClick={() => cancel(record.id)}>取消</a>
+                    if (editableData[record._id]) return <span>
+                      <a onClick={() => save(record._id)} class={['mr-2']} style="margin-right:10px;">保存</a>
+                      <a onClick={() => cancel(record._id)}>取消</a>
                     </span>;
                     return <span>
-                      <a onClick={() => edit(record.id)} class={['mr-2']}>编辑</a>
-                      <Popconfirm title="确定删除?" okText="确定" cancelText="取消" onConfirm={() => handleTimelineDel(record.id)}><a>删除</a></Popconfirm>
+                      <a onClick={() => edit(record._id)} class={['mr-2']} style="margin-right:10px;">编辑</a>
+                      <Popconfirm title="确定删除?" okText="确定" cancelText="取消" onConfirm={() => handleTimelineDel(record._id)}><a>删除</a></Popconfirm>
                     </span>
                   }
                 }
@@ -307,30 +370,48 @@ export const Manage = defineComponent({
         {/*添加事件*/}
         <Modal
           title="添加事件"
-          width="100%"
-          wrapClassName="full-modal"
+          width="80%"
           okText="确定"
           cancelText="取消"
           onOk={handleAddSlide}
           onCancel={handleCancelAddSlide}
           open={openAddSlide.value}>
           <h1 class={['mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>选择时间线</h1>
-          <Select
+          <select
             value={slideValue.value}
-            options={timelineOptions.value}
-            filterOption={handleFilterOption}
-            onChange={handleSlideSelectTimeline}
-            showSearch placeholder="选择..."
+            onChange={(e: any) => handleSlideSelectTimeline(e.target.value)}
+            placeholder="选择..."
             style="width: 200px">
-          </Select>
+            <option value="" key="">-- 选择时间线 --</option>
+            {
+              timelineOptions.value!.map(t => (
+                <option value={t.value} key={t.value!}>{t.label}</option>
+              ))
+            }
+          </select>
           <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>类型</h1>
-          <RadioGroup
-            value={slideType.value}
-            onChange={(e) => (slideType.value = e.target.value)}
-            buttonStyle="solid">
-            <RadioButton value='0'>Title</RadioButton>
-            <RadioButton value='1'>Slide</RadioButton>
-          </RadioGroup>
+          {/* 添加的类型 */}
+          <label>
+            <input
+              type="radio"
+              name="slideType"
+              value="0"
+              checked={slideType.value === '0'}
+              onChange={(e: any) => (slideType.value = e.target.value)}
+            />
+            标题
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              name="slideType"
+              value="1"
+              checked={slideType.value === '1'}
+              onChange={(e: any) => (slideType.value = e.target.value)}
+            />
+            事件
+          </label>
           {
             slideType.value === "1" && <div>
               <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>分组</h1>
@@ -352,32 +433,11 @@ export const Manage = defineComponent({
 
           <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>事件日期</h1>
           <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'medium', fontWeight: 'bolder'}}>开始时间</h1>
-          <InputNumber value={slideStartDate.value.year} min={-10000} max={5000} onChange={(val) => slideStartDate.value.year = val as number} style="width:150px">
-            {{
-              addonBefore: () => (<Select value={slideStartDateCEType.value}
-                                          onChange={(val) => (slideStartDateCEType.value = val as string)}
-                                          style="width:60px">
-                <SelectOption value="add">+</SelectOption>
-                <SelectOption value="minus">-</SelectOption>
-              </Select>)
-            }}
-          </InputNumber>
-          <InputNumber value={slideStartDate.value.month} min={1} max={12} onChange={(val) => slideStartDate.value.month = val as number} style="width:80px"></InputNumber>
-          <InputNumber value={slideStartDate.value.day} min={1} max={31} onChange={(val) => slideStartDate.value.day = val as number} style="width:80px"></InputNumber>
+          <input ref={slideStartDateEle} type="text" placeholder="选择开始时间"></input>
 
           <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'medium', fontWeight: 'bolder'}}>结束时间</h1>
-          <InputNumber value={slideEndDate.value.year} min={-10000} max={5000} style="width:150px">
-            {{
-              addonBefore: () => (<Select value={slideEndDateCEType.value}
-                                          onChange={(val) => (slideEndDateCEType.value = val as string)}
-                                          style="width:60px">
-                <SelectOption value="add">+</SelectOption>
-                <SelectOption value="minus">-</SelectOption>
-              </Select>)
-            }}
-          </InputNumber>
-          <InputNumber value={slideEndDate.value.month} min={1} max={12} style="width:80px"></InputNumber>
-          <InputNumber value={slideEndDate.value.day} min={1} max={31} style="width:80px"></InputNumber>
+          <input ref={slideEndDateEle} type="text" placeholder="选择结束时间"></input>
+
         </Modal>
       </div>
     )

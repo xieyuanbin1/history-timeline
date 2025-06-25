@@ -41,8 +41,6 @@ export class SlideResponse {
 }
 
 export class RAddSlide {
-  id!: string;
-  type!: string;
   text!: RText;
   start_date!: RDate;
   end_date?: RDate;

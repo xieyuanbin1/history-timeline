@@ -18,7 +18,7 @@ enum RequestEnums {
   TIMEOUT = 30000,
   OVERDUE = 600, // 登录失效
   FAIL = 1, // 请求失败
-  SUCCESS = 0, // 请求成功
+  SUCCESS = 200, // 请求成功
 }
 const config: AxiosRequestConfig = {
   // 默认地址
@@ -62,7 +62,7 @@ class RequestHttp {
     this.service.interceptors.response.use(
       (response: AxiosResponse) => {
         const { data } = response; // 解构
-        if (data.code === RequestEnums.OVERDUE) {
+        if (data.status === RequestEnums.OVERDUE) {
           // 登录信息失效，应跳转到登录页面，并清空本地的token
           sessionStorage.removeItem('token');
           // router.replace({
@@ -71,9 +71,9 @@ class RequestHttp {
           return Promise.reject(data);
         }
         // 全局错误信息拦截（防止下载文件得时候返回数据流，没有code，直接报错）
-        if (data.code && data.code !== RequestEnums.SUCCESS) {
+        if (data.status && data.status !== RequestEnums.SUCCESS) {
           // 此处也可以使用组件提示报错信息
-          console.error(data.msg);
+          console.error(data.message);
           return Promise.reject(data)
         }
         return data.data;
@@ -97,8 +97,14 @@ class RequestHttp {
   get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.service.get(url, config);
   }
-  post<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.service.post(url, config);
+  post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.service.post(url, data, config);
+  }
+  patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.service.patch(url, data, config);
+  }
+  delete<T>(url: string, data?: any, config: AxiosRequestConfig = {}): Promise<T> {
+    return this.service.delete(url, { ...config, data });
   }
 }
 
