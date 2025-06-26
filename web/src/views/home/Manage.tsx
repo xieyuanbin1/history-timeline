@@ -103,9 +103,9 @@ export const Manage = defineComponent({
     const slideHeadline = ref<string|undefined>(undefined);
     const slideText = ref<string|undefined>(undefined);
     const slideStartDate: Ref<string|undefined> = ref(undefined);
-    const slideStartDateCEType = ref('add')
+    const slideStartDateCEType = ref('positive'); // positive/negative
     const slideEndDate: Ref<string|undefined> = ref(undefined);
-    const slideEndDateCEType = ref('add')
+    const slideEndDateCEType = ref('positive');
     // ----------------------------------------------------------------------------------------
 
     onMounted(() => {
@@ -214,7 +214,7 @@ export const Manage = defineComponent({
         type: slideType.value,
         text: { headline: slideHeadline.value, text: slideText.value },
         start_date: {
-          year: startDate.year(),
+          year: slideStartDateCEType.value == 'positive' ? startDate.year() : -startDate.year(),
           month: startDate.month() + 1, // month 是从 0 开始的
           day: startDate.date(),
         },
@@ -227,7 +227,7 @@ export const Manage = defineComponent({
         console.log('slideEndDate:::', dayjs(slideEndDate.value));
         // 处理结束时间
         slide.end_date = {
-          year: endDate.year(),
+          year: slideEndDateCEType.value == 'positive' ? endDate.year() : -endDate.year(),
           month: endDate.month() + 1, // month 是从 0 开始的
           day: endDate.date(),
         }
@@ -271,9 +271,9 @@ export const Manage = defineComponent({
       slideHeadline.value = undefined;
       slideText.value = undefined;
       slideStartDate.value = undefined;
-      slideStartDateCEType.value = 'add';
+      slideStartDateCEType.value = 'positive'; // positive/negative
       slideEndDate.value = undefined;
-      slideEndDateCEType.value = 'add';
+      slideEndDateCEType.value = 'positive';
       // 清理 flatpickr 的值
       console.log('flatpickr mounted:', slideStartDateEle.value);
       setTimeout(() => {
@@ -442,12 +442,32 @@ export const Manage = defineComponent({
             />
             事件
           </label>
+
+          {/* 起止时间 */}
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>事件日期</p>
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>开始时间</p>
+          <select value={slideStartDateCEType.value} onChange={(e: Event) => slideStartDateCEType.value = (e.target as HTMLInputElement).value!}>
+            <option value="positive" key="positive">CE</option>
+            <option value="negative" key="negative">BCE</option>
+          </select>
+          <input ref={slideStartDateEle} type="text" placeholder="选择开始时间"></input>
+
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>结束时间</p>
+          <select value={slideEndDateCEType.value} onChange={(e: Event) => slideEndDateCEType.value = (e.target as HTMLInputElement).value!}>
+            <option value="positive" key="positive">CE</option>
+            <option value="negative" key="negative">BCE</option>
+          </select>
+          <input ref={slideEndDateEle} type="text" placeholder="选择结束时间"></input>
+
+          {/* 根据类型判断是否需要分组，title 标题中不需要分组，events 中可以设置分组进行归类 */}
           {
             slideType.value === "1" && <div>
               <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>分组</p>
               <input value={slideGroup.value} onChange={(e: Event) => slideGroup.value = (e.target as HTMLInputElement).value} style={{ width: '300px' }}></input>
             </div>
           }
+
+          {/* 标题及内容 */}
           <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>正文</p>
           <input
             value={slideHeadline.value}
@@ -460,13 +480,6 @@ export const Manage = defineComponent({
             autoSize={{minRows: 10, maxRows: 30}}
             placeholder={"内容"}
             class={['mt-4']}></Textarea>
-
-          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>事件日期</p>
-          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>开始时间</p>
-          <input ref={slideStartDateEle} type="text" placeholder="选择开始时间"></input>
-
-          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>结束时间</p>
-          <input ref={slideEndDateEle} type="text" placeholder="选择结束时间"></input>
 
         </Modal>
       </div>
