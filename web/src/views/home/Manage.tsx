@@ -1,8 +1,6 @@
 import {defineComponent, onMounted, reactive, Ref, ref, UnwrapRef} from "vue";
 import {
   Button,
-  Card,
-  CardMeta,
   Input,
   InputSearch,
   message,
@@ -332,9 +330,9 @@ export const Manage = defineComponent({
                 <th class="table-header">标题</th>
                 <th class="table-header">内容</th>
                 <th style={{ width: '100px' }} class="table-header">分组</th>
-                <th style={{ width: '200px' }} class="table-header">开始日期</th>
-                <th style={{ width: '200px' }} class="table-header">结束日期</th>
-                <th style={{ width: '200px' }} class="table-header">操作</th>
+                <th style={{ width: '150px' }} class="table-header">开始日期</th>
+                <th style={{ width: '150px' }} class="table-header">结束日期</th>
+                <th style={{ width: '100px' }} class="table-header">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -344,8 +342,8 @@ export const Manage = defineComponent({
                   <td class="table-cell">{slides.value.title!.text.headline}</td>
                   <td class="table-cell">{slides.value.title!.text.text}</td>
                   <td class="table-cell"></td>
-                  <td class="table-cell">{slides.value.title!.start_date.year}</td>
-                  <td class="table-cell">{slides.value.title!.end_date?.year}</td>
+                  <td class="table-cell">{slides.value.title!.start_date.year} {slides.value.title!.start_date.month} {slides.value.title!.start_date.day}</td>
+                  <td class="table-cell">{slides.value.title!.end_date?.year} {slides.value.title!.end_date?.month} {slides.value.title!.end_date?.day}</td>
                   <td class="table-cell">
                       <Popconfirm title="确定删除?" okText="确定" cancelText="取消"
                         onConfirm={() => handleDeleteSlide('title', slides.value._id!, slides.value.title!._id!)}>
@@ -361,8 +359,8 @@ export const Manage = defineComponent({
                     <td class="table-cell">{slide.text.headline}</td>
                     <td class="table-cell">{slide.text.text}</td>
                     <td class="table-cell">{slide.group}</td>
-                    <td class="table-cell">{slide.start_date.year}</td>
-                    <td class="table-cell">{slide.end_date?.year}</td>
+                    <td class="table-cell">{slide.start_date.year} {slide.start_date.month} {slide.start_date.day}</td>
+                    <td class="table-cell">{slide.end_date?.year} {slide.end_date?.month} {slide.end_date?.day}</td>
                     <td class="table-cell">
                       <Popconfirm title="确定删除?" okText="确定" cancelText="取消"
                         onConfirm={() => handleDeleteSlide('event', slides.value._id!, slide._id!)}>
