@@ -13,11 +13,13 @@ import {
   Textarea
 } from "ant-design-vue";
 import {
-  slideAddApi, slideDeleteApi,
+  eventSlideAddApi, eventSlideDeleteApi,
   timelineAddTitleApi,
   timelineDeleteApi,
   timelineListApi,
-  timelineTitleDetailApi, timelineUpdateApi
+  timelineTitleDetailApi, timelineUpdateApi,
+  titleSlideAddApi,
+  titleSlideDeleteApi
 } from "../../api/timeline.ts";
 import {SlideResponse} from "../../types/timeline.rest.ts";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
@@ -156,10 +158,21 @@ export const Manage = defineComponent({
     }
 
     // 删除 slide
-    async function handleDeleteSlide(id: string, sid: string) {
-      console.log('delete::::::::::', id);
-      await slideDeleteApi(id, sid);
-      if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
+    async function handleDeleteSlide(type: 'title' | 'event', id: string, sid: string) {
+      console.log('delete::::::::::', id, slides.value);
+      try {
+        if (type === 'title') {
+          // 删除 title slide
+          await titleSlideDeleteApi(id, sid);
+        } else if (type === 'event') {
+          // 删除 event slide
+          await eventSlideDeleteApi(id, sid);
+        }
+        if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
+      } catch (error: any) {
+        console.error('添加事件失败:', error);
+        message.error(error.message || "添加事件失败");
+      }
     }
 
     // 选择时间线
@@ -221,7 +234,14 @@ export const Manage = defineComponent({
       }
       if (slideGroup.value) slide.group = slideGroup.value;
       try {
-        await slideAddApi(slide.id, slide)
+        if (slideType.value === '0') {
+          // 添加标题
+          await titleSlideAddApi(slide.id, slide);
+        }
+        if (slideType.value === '1') {
+          // 添加事件
+          await eventSlideAddApi(slide.id, slide);
+        }
         if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
         openAddSlide.value = false;
       } catch (error: any) {
@@ -310,7 +330,7 @@ export const Manage = defineComponent({
                 slides.value.title && <Card class={['border-blue-300']} hoverable style="width: 300px">
                   {{
                     default: () => <CardMeta title={slides.value.title?.text.headline} description={slides.value.title?.text.text}></CardMeta>,
-                    actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value._id!, slides.value.title?._id!)} key="delete" />]
+                    actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide('title', slides.value._id!, slides.value.title?._id!)} key="delete" />]
                   }}
                 </Card>
               }
@@ -319,7 +339,7 @@ export const Manage = defineComponent({
                   <Card hoverable style="width: 300px">
                     {{
                       default: () => <CardMeta title={slide.text.headline} description={slide.text.text}></CardMeta>,
-                      actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value._id!, slide._id!)} key="delete" />]
+                      actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide('event', slides.value._id!, slide._id!)} key="delete" />]
                     }}
                   </Card>
                 ))
@@ -386,10 +406,10 @@ export const Manage = defineComponent({
           onOk={handleAddSlide}
           onCancel={handleCancelAddSlide}
           open={openAddSlide.value}>
-          <h1 class={['mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>选择时间线</h1>
+          <p class={['mb-2']} style={{fontWeight: 'bolder'}}>选择时间线</p>
           <select
             value={slideValue.value}
-            onChange={(e: any) => handleSlideSelectTimeline(e.target.value)}
+            onChange={(e: Event) => handleSlideSelectTimeline((e.target as HTMLInputElement).value)}
             placeholder="选择..."
             style="width: 200px">
             <option value="" key="">-- 选择时间线 --</option>
@@ -399,7 +419,7 @@ export const Manage = defineComponent({
               ))
             }
           </select>
-          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>类型</h1>
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>类型</p>
           {/* 添加的类型 */}
           <label>
             <input
@@ -407,7 +427,7 @@ export const Manage = defineComponent({
               name="slideType"
               value="0"
               checked={slideType.value === '0'}
-              onChange={(e: any) => (slideType.value = e.target.value)}
+              onChange={(e: Event) => (slideType.value = (e.target as HTMLInputElement).value)}
             />
             标题
           </label>
@@ -418,22 +438,22 @@ export const Manage = defineComponent({
               name="slideType"
               value="1"
               checked={slideType.value === '1'}
-              onChange={(e: any) => (slideType.value = e.target.value)}
+              onChange={(e: Event) => (slideType.value = (e.target as HTMLInputElement).value)}
             />
             事件
           </label>
           {
             slideType.value === "1" && <div>
-              <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>分组</h1>
-              <Input value={slideGroup.value} onChange={(e) => slideGroup.value = e.target.value!} style="width: 300px"></Input>
+              <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>分组</p>
+              <input value={slideGroup.value} onChange={(e: Event) => slideGroup.value = (e.target as HTMLInputElement).value} style={{ width: '300px' }}></input>
             </div>
           }
-          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>正文</h1>
-          <Input
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>正文</p>
+          <input
             value={slideHeadline.value}
-            onChange={(e) => (slideHeadline.value = e.target.value!)}
+            onChange={(e: Event) => (slideHeadline.value = (e.target as HTMLInputElement).value!)}
             placeholder={"标题"}
-            style="width: 300px"></Input>
+            style="width: 300px"></input>
           <Textarea
             value={slideText.value}
             onChange={(e) => (slideText.value = e.target.value!)}
@@ -441,11 +461,11 @@ export const Manage = defineComponent({
             placeholder={"内容"}
             class={['mt-4']}></Textarea>
 
-          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'large', fontWeight: 'bolder'}}>事件日期</h1>
-          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'medium', fontWeight: 'bolder'}}>开始时间</h1>
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>事件日期</p>
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>开始时间</p>
           <input ref={slideStartDateEle} type="text" placeholder="选择开始时间"></input>
 
-          <h1 class={['mt-4', 'mb-2']} style={{fontSize: 'medium', fontWeight: 'bolder'}}>结束时间</h1>
+          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>结束时间</p>
           <input ref={slideEndDateEle} type="text" placeholder="选择结束时间"></input>
 
         </Modal>

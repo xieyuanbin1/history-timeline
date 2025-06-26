@@ -61,13 +61,12 @@ export class TimelineController {
   // 添加 title 事件
   @Post('title/:id')
   addTitle(@Param('id') id: string, @Body() slide: SlideAddDTO) {
-    const { start_date, end_date, text, media, group, background, display_date, unique_id, autolink } = slide;
+    const { start_date, end_date, text, media, background, display_date, unique_id, autolink } = slide;
     return this.timeSer.addTitleSlide(id, {
       start_date,
       end_date,
       text,
       media,
-      group,
       background,
       display_date,
       unique_id,

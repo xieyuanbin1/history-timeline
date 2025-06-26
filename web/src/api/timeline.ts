@@ -22,8 +22,14 @@ export const timelineDeleteApi = (id: string) => {
   return request.delete(`/timeline/${id}`);
 }
 
-export const slideAddApi = (id: string, body: RAddSlide) => {
+// 添加 event slide
+export const eventSlideAddApi = (id: string, body: RAddSlide) => {
   return request.post(`/timeline/event/${id}`, body);
+}
+
+// 添加 title slide
+export const titleSlideAddApi = (id: string, body: RAddSlide) => {
+  return request.post(`/timeline/title/${id}`, body);
 }
 
 // 更新时间线 name
@@ -31,7 +37,11 @@ export const timelineUpdateApi = (id: string, name: string) => {
   return request.patch<SlideResponse>(`/timeline/${id}`, { name });
 }
 
-// 删除 slide
-export const slideDeleteApi = (id: string, sid: string) => {
+// 删除 event slide
+export const eventSlideDeleteApi = (id: string, sid: string) => {
   return request.delete(`/timeline/${id}/event/${sid}`, {});
+}
+// 删除 title slide
+export const titleSlideDeleteApi = (id: string, sid: string) => {
+  return request.delete(`/timeline/${id}/title/${sid}`, {});
 }
