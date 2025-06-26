@@ -445,14 +445,14 @@ export const Manage = defineComponent({
 
           {/* 起止时间 */}
           <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>事件日期</p>
-          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>开始时间</p>
+          <span class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder', marginRight: '10px'}}>开始时间</span>
           <select value={slideStartDateCEType.value} onChange={(e: Event) => slideStartDateCEType.value = (e.target as HTMLInputElement).value!}>
             <option value="positive" key="positive">CE</option>
             <option value="negative" key="negative">BCE</option>
           </select>
           <input ref={slideStartDateEle} type="text" placeholder="选择开始时间"></input>
 
-          <p class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder'}}>结束时间</p>
+          <span class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder', marginRight: '10px', marginLeft: '20px'}}>结束时间</span>
           <select value={slideEndDateCEType.value} onChange={(e: Event) => slideEndDateCEType.value = (e.target as HTMLInputElement).value!}>
             <option value="positive" key="positive">CE</option>
             <option value="negative" key="negative">BCE</option>
