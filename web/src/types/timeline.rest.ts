@@ -29,6 +29,7 @@ export class RSlide {
   _id?: string;
   pid?: number;
   text!: RText;
+  group?: string;
   start_date!: RDate;
   end_date?: RDate;
   background?: RBackground;

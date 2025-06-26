@@ -48,7 +48,7 @@ export const Timeline = defineComponent({
       <div>
         <button ref="/timeline" onClick={e => handleRoute(e, '/manage')}>管理模式</button>
         <div class={['pl-4', 'pr-4']}>
-          <select name="timeline" id="timeline-select" placeholder="选择时间线" value={timelineValue.value} onChange={(e: any) => handleSelectTimeline(e.target.value)}>
+          <select style="width: 200px" placeholder="选择时间线" value={timelineValue.value} onChange={(e: any) => handleSelectTimeline(e.target.value)}>
             <option value="" key= "">-- 选择时间线 --</option>
             {timelineList.value.map(t => (
               <option value={t._id} key={t._id}>{t.name}</option>

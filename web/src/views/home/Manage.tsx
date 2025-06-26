@@ -22,12 +22,13 @@ import {
   titleSlideDeleteApi
 } from "../../api/timeline.ts";
 import {SlideResponse} from "../../types/timeline.rest.ts";
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 import {SelectValue} from "ant-design-vue/es/select";
 import flatpickr from "flatpickr";
 import dayjs from 'dayjs';
 
 import "./manage.less";
+import "./Table.less";
+
 import {cloneDeep} from "lodash-es";
 import { useRouter } from "vue-router";
 
@@ -323,29 +324,56 @@ export const Manage = defineComponent({
           <button onClick={handleInitAddSlide}>新增事件</button>
         </div>
 
-        <div class={['flex']}>
-          <div class={['w-8/12', 'p-4']}>
-            <div class={['events-container']}>
+        <div class={['flex', 'table-wrapper']}>
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th style={{ width: '100px' }} class="table-header">ID</th>
+                <th class="table-header">标题</th>
+                <th class="table-header">内容</th>
+                <th style={{ width: '100px' }} class="table-header">分组</th>
+                <th style={{ width: '200px' }} class="table-header">开始日期</th>
+                <th style={{ width: '200px' }} class="table-header">结束日期</th>
+                <th style={{ width: '200px' }} class="table-header">操作</th>
+              </tr>
+            </thead>
+            <tbody>
               {
-                slides.value.title && <Card class={['border-blue-300']} hoverable style="width: 300px">
-                  {{
-                    default: () => <CardMeta title={slides.value.title?.text.headline} description={slides.value.title?.text.text}></CardMeta>,
-                    actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide('title', slides.value._id!, slides.value.title?._id!)} key="delete" />]
-                  }}
-                </Card>
+                slides.value.title && <tr>
+                  <td class="table-cell">{slides.value.title!._id}</td>
+                  <td class="table-cell">{slides.value.title!.text.headline}</td>
+                  <td class="table-cell">{slides.value.title!.text.text}</td>
+                  <td class="table-cell"></td>
+                  <td class="table-cell">{slides.value.title!.start_date.year}</td>
+                  <td class="table-cell">{slides.value.title!.end_date?.year}</td>
+                  <td class="table-cell">
+                      <Popconfirm title="确定删除?" okText="确定" cancelText="取消"
+                        onConfirm={() => handleDeleteSlide('title', slides.value._id!, slides.value.title!._id!)}>
+                        <a>删除</a>
+                      </Popconfirm>
+                    </td>
+                </tr>
               }
               {
                 slides.value.events.map(slide => (
-                  <Card hoverable style="width: 300px">
-                    {{
-                      default: () => <CardMeta title={slide.text.headline} description={slide.text.text}></CardMeta>,
-                      actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide('event', slides.value._id!, slide._id!)} key="delete" />]
-                    }}
-                  </Card>
+                  <tr key={slide._id}>
+                    <td class="table-cell">{slide._id}</td>
+                    <td class="table-cell">{slide.text.headline}</td>
+                    <td class="table-cell">{slide.text.text}</td>
+                    <td class="table-cell">{slide.group}</td>
+                    <td class="table-cell">{slide.start_date.year}</td>
+                    <td class="table-cell">{slide.end_date?.year}</td>
+                    <td class="table-cell">
+                      <Popconfirm title="确定删除?" okText="确定" cancelText="取消"
+                        onConfirm={() => handleDeleteSlide('event', slides.value._id!, slide._id!)}>
+                        <a>删除</a>
+                      </Popconfirm>
+                    </td>
+                  </tr>
                 ))
               }
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
 
         {/*编辑操作时间线*/}
