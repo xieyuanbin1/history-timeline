@@ -27,10 +27,12 @@ import dayjs from 'dayjs';
 
 import "./manage.less";
 import {cloneDeep} from "lodash-es";
+import { useRouter } from "vue-router";
 
 export const Manage = defineComponent({
   name: 'Manage',
   setup(_props, _ctx) {
+    const router = useRouter();
     const slideStartDateEle = ref<HTMLDivElement | null>(null); // slideStartDateEle
     const slideEndDateEle = ref<HTMLDivElement | null>(null); // slideStartDateEle
 
@@ -154,9 +156,9 @@ export const Manage = defineComponent({
     }
 
     // 删除 slide
-    async function handleDeleteSlide(id: string) {
+    async function handleDeleteSlide(id: string, sid: string) {
       console.log('delete::::::::::', id);
-      await slideDeleteApi(id);
+      await slideDeleteApi(id, sid);
       if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
     }
 
@@ -272,8 +274,16 @@ export const Manage = defineComponent({
       }, 100);
     }
 
+    function handleRoute(e: MouseEvent, path: string) {
+      console.log('handleRoute', path);
+      e.preventDefault();
+      e.stopPropagation();
+      router.push(path);
+    }
+
     return () => (
       <div class={["manage-container", 'p-4']}>
+        <button ref="/timeline" onClick={e => handleRoute(e, '/timeline')}>查看模式</button>
         {/* 新增等操作*/}
         <div>
           <select
@@ -300,7 +310,7 @@ export const Manage = defineComponent({
                 slides.value.title && <Card class={['border-blue-300']} hoverable style="width: 300px">
                   {{
                     default: () => <CardMeta title={slides.value.title?.text.headline} description={slides.value.title?.text.text}></CardMeta>,
-                    actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value.title?.id!)} key="delete" />]
+                    actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value._id!, slides.value.title?._id!)} key="delete" />]
                   }}
                 </Card>
               }
@@ -309,7 +319,7 @@ export const Manage = defineComponent({
                   <Card hoverable style="width: 300px">
                     {{
                       default: () => <CardMeta title={slide.text.headline} description={slide.text.text}></CardMeta>,
-                      actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slide.id!)} key="delete" />]
+                      actions: () => [<EditOutlined key="edit" />, <DeleteOutlined onClick={() => handleDeleteSlide(slides.value._id!, slide._id!)} key="delete" />]
                     }}
                   </Card>
                 ))

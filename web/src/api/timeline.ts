@@ -32,6 +32,6 @@ export const timelineUpdateApi = (id: string, name: string) => {
 }
 
 // 删除 slide
-export const slideDeleteApi = (id: string) => {
-  return request.post(`/timeline/delete/slide`, { data: id });
+export const slideDeleteApi = (id: string, sid: string) => {
+  return request.delete(`/timeline/${id}/event/${sid}`, {});
 }

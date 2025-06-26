@@ -26,7 +26,7 @@ export class TimelineAddTitle {
 }
 
 export class RSlide {
-  id?: string;
+  _id?: string;
   pid?: number;
   text!: RText;
   start_date!: RDate;
@@ -36,6 +36,8 @@ export class RSlide {
 }
 
 export class SlideResponse {
+  _id?: string;
+  name?: string;
   title?: RSlide;
   events!: RSlide[];
 }

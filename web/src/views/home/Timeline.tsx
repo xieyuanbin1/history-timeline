@@ -2,10 +2,12 @@ import {defineComponent, onMounted, ref} from "vue";
 import {timelineListApi, timelineTitleDetailApi} from "../../api/timeline.ts";
 import {message, SelectProps} from "ant-design-vue";
 import {SelectValue} from "ant-design-vue/es/select";
+import { useRouter } from "vue-router";
 
 export const Timeline = defineComponent({
   name: 'Timeline',
   setup(_props, _ctx) {
+    const router = useRouter();
     const timelineList = ref<{_id: string, name: string}[]>([]);
     // 时间线下拉框数据
     const timelineOptions = ref<SelectProps['options']>([]);
@@ -34,8 +36,17 @@ export const Timeline = defineComponent({
         message.warning('当前时间线没有事件数据');
       }
     }
+
+    function handleRoute(e: MouseEvent, path: string) {
+      console.log('handleRoute', path);
+      e.preventDefault();
+      e.stopPropagation();
+      router.push(path);
+    }
+
     return () => (
       <div>
+        <button ref="/timeline" onClick={e => handleRoute(e, '/manage')}>管理模式</button>
         <div class={['pl-4', 'pr-4']}>
           <select name="timeline" id="timeline-select" placeholder="选择时间线" value={timelineValue.value} onChange={(e: any) => handleSelectTimeline(e.target.value)}>
             <option value="" key= "">-- 选择时间线 --</option>
