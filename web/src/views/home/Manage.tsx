@@ -286,7 +286,7 @@ export const Manage = defineComponent({
         if (slideEndDateEle.value) {
           const fp = flatpickr(slideEndDateEle.value!, { allowInput: true, dateFormat: "Y-m-d", onChange: (selectedDates, dateStr) => {
             console.log('flatpickr selected date:', selectedDates, dateStr);
-            slideStartDate.value = dateStr; // 这里可以处理选中的日期
+            slideEndDate.value = dateStr; // 这里可以处理选中的日期
           }});
           console.log('flatpickr mounted:', fp);
         }
