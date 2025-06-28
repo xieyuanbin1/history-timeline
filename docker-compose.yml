@@ -29,8 +29,8 @@ services:
   mongo:
     image: mongo:4.4.29
     container_name: mongo
-    expose:
-      - 27017
+    ports:
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
     networks:
