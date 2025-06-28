@@ -19,7 +19,7 @@ import {
   titleSlideAddApi,
   titleSlideDeleteApi
 } from "../../api/timeline.ts";
-import {SlideResponse} from "../../types/timeline.rest.ts";
+import {RSlide, SlideResponse} from "../../types/timeline.rest.ts";
 import {SelectValue} from "ant-design-vue/es/select";
 import flatpickr from "flatpickr";
 import dayjs from 'dayjs';
@@ -102,8 +102,10 @@ export const Manage = defineComponent({
     const slideHeadline = ref<string|undefined>(undefined);
     const slideText = ref<string|undefined>(undefined);
     const slideStartDate: Ref<string|undefined> = ref(undefined);
+    const slideStartDateType = ref('3'); // 3: 年月日，2: 年月，1: 年
     const slideStartDateCEType = ref('positive'); // positive/negative
     const slideEndDate: Ref<string|undefined> = ref(undefined);
+    const slideEndDateType = ref('3'); // 3: 年月日，2: 年月，1: 年
     const slideEndDateCEType = ref('positive');
     // ----------------------------------------------------------------------------------------
 
@@ -205,8 +207,8 @@ export const Manage = defineComponent({
         id: string;
         type: string;
         text: { headline: string, text: string };
-        start_date: {year: number, month: number|undefined, day: number|undefined },
-        end_date?: {year: number, month: number|undefined, day: number|undefined },
+        start_date: {year: number, month?: number, day?: number },
+        end_date?: {year: number, month?: number, day?: number },
         group?: string,
       } = {
         id: slideValue.value as string,
@@ -214,21 +216,33 @@ export const Manage = defineComponent({
         text: { headline: slideHeadline.value, text: slideText.value },
         start_date: {
           year: slideStartDateCEType.value == 'positive' ? startDate.year() : -startDate.year(),
-          month: startDate.month() + 1, // month 是从 0 开始的
-          day: startDate.date(),
         },
       };
+      if (slideStartDateType.value == '2') {
+        // 年月
+        slide.start_date.month = startDate.month() + 1; // month 是从 0 开始的
+      } else if (slideStartDateType.value == '3') {
+        // 年月日
+        slide.start_date.month = startDate.month() + 1; // month 是从 0 开始的
+        slide.start_date.day = startDate.date();
+      }
       if (slideEndDate.value) {
         const endDate = dayjs(slideEndDate.value);
         if (!endDate.isValid()) return message.error("结束时间格式不正确");
-        if (endDate.isBefore(startDate)) return message.error("结束时间不能早于开始时间");
+        // if (endDate.isBefore(startDate)) return message.error("结束时间不能早于开始时间");
         // 如果有结束时间
-        console.log('slideEndDate:::', dayjs(slideEndDate.value));
+        console.log('slideEndDate:::', slideEndDate.value);
         // 处理结束时间
         slide.end_date = {
           year: slideEndDateCEType.value == 'positive' ? endDate.year() : -endDate.year(),
-          month: endDate.month() + 1, // month 是从 0 开始的
-          day: endDate.date(),
+        }
+        if (slideEndDateType.value == '2') {
+          // 年月
+          slide.end_date.month = endDate.month() + 1; // month 是从 0 开始的
+        } else if (slideEndDateType.value == '3') {
+          // 年月日
+          slide.end_date.month = endDate.month() + 1; // month 是从 0 开始的
+          slide.end_date.day = endDate.date();
         }
       }
       if (slideGroup.value) slide.group = slideGroup.value;
@@ -242,7 +256,10 @@ export const Manage = defineComponent({
           await eventSlideAddApi(slide.id, slide);
         }
         if (timelineValue.value) await handleTimelineDetail(timelineValue.value! as string);
+
+        // 清理模态框数据
         openAddSlide.value = false;
+        initSlideForms();
       } catch (error: any) {
         console.error('添加事件失败:', error);
         message.error(error.message || "添加事件失败");
@@ -254,6 +271,31 @@ export const Manage = defineComponent({
     async function handleCancelAddSlide() {
       openAddSlide.value = false;
       // TODO: 清理模态框的临时数据
+      initSlideForms();
+    }
+
+    function initSlideForms() {
+      slideValue.value = undefined;
+      slideType.value = '1'; // 默认事件类型
+      slideGroup.value = undefined;
+      slideHeadline.value = undefined;
+      slideText.value = undefined;
+      slideStartDate.value = undefined;
+      slideStartDateType.value = '3'; // 3: 年月日，2: 年月，1: 年
+      slideStartDateCEType.value = 'positive'; // positive/negative
+      slideEndDate.value = undefined;
+      slideEndDateType.value = '3'; // 3: 年月日，2: 年月，1: 年
+      slideEndDateCEType.value = 'positive';
+
+      // 清理 flatpickr 的值
+      if (slideStartDateEle.value) {
+        const fpStart = flatpickr(slideStartDateEle.value!);
+        fpStart.setDate(''); // 清空开始时间
+      }
+      if (slideEndDateEle.value) {
+        const fpEnd = flatpickr(slideEndDateEle.value!);
+        fpEnd.setDate(''); // 清空结束时间
+      }
     }
 
     function handleSlideSelectTimeline(value: SelectValue) {
@@ -264,16 +306,7 @@ export const Manage = defineComponent({
     // 打开新增事件弹框 初始化数据
     function handleInitAddSlide() {
       openAddSlide.value = true;
-      slideValue.value = undefined;
-      slideType.value = '1'; // 默认事件类型
-      slideGroup.value = undefined;
-      slideHeadline.value = undefined;
-      slideText.value = undefined;
-      slideStartDate.value = undefined;
-      slideStartDateCEType.value = 'positive'; // positive/negative
-      slideEndDate.value = undefined;
-      slideEndDateCEType.value = 'positive';
-      // 清理 flatpickr 的值
+
       console.log('flatpickr mounted:', slideStartDateEle.value);
       setTimeout(() => {
         if (slideStartDateEle.value) {
@@ -298,6 +331,13 @@ export const Manage = defineComponent({
       e.preventDefault();
       e.stopPropagation();
       router.push(path);
+    }
+
+    function handleEditSlide(id: string, type: string, slide: RSlide) {
+      // openAddSlide.value = true;
+      console.log('handleEditSlide:', slide); // 这里可以实现编辑功能
+      initSlideForms(); // 初始化表单数据
+      handleInitAddSlide(); // 打开模态框
     }
 
     return () => (
@@ -347,6 +387,7 @@ export const Manage = defineComponent({
                   <td class="table-cell">{ slides.value.title!.start_date.year } { slides.value.title!.start_date?.month! } {slides.value.title!.start_date.day }</td>
                   <td class="table-cell">{ slides.value.title!.end_date?.year } { slides.value.title!.end_date?.month } { slides.value.title!.end_date?.day }</td>
                   <td class="table-cell">
+                      {/* <a onClick={() => handleEditSlide(slides.value._id!, '0', slides.value.title!)}>编辑</a> */}
                       <Popconfirm title="确定删除?" okText="确定" cancelText="取消"
                         onConfirm={() => handleDeleteSlide('title', slides.value._id!, slides.value.title!._id!)}>
                         <a>删除</a>
@@ -364,6 +405,7 @@ export const Manage = defineComponent({
                     <td class="table-cell">{slide.start_date.year} {slide.start_date.month} {slide.start_date.day}</td>
                     <td class="table-cell">{slide.end_date?.year} {slide.end_date?.month} {slide.end_date?.day}</td>
                     <td class="table-cell">
+                      {/* <a onClick={() => handleEditSlide(slides.value._id!, '1', slide)}>编辑</a> */}
                       <Popconfirm title="确定删除?" okText="确定" cancelText="取消"
                         onConfirm={() => handleDeleteSlide('event', slides.value._id!, slide._id!)}>
                         <a>删除</a>
@@ -479,6 +521,11 @@ export const Manage = defineComponent({
             <option value="negative" key="negative">BCE</option>
           </select>
           <input ref={slideStartDateEle} type="text" placeholder="选择开始时间"></input>
+          <select value={slideStartDateType.value} onChange={(e: Event) => slideStartDateType.value = (e.target as HTMLInputElement).value!}>
+            <option value="3" key="yearmonthday">年月日</option>
+            <option value="2" key="yearmonth">年月</option>
+            <option value="1" key="year">年</option>
+          </select>
 
           <span class={['mt-4', 'mb-2']} style={{fontWeight: 'bolder', marginRight: '10px', marginLeft: '20px'}}>结束时间</span>
           <select value={slideEndDateCEType.value} onChange={(e: Event) => slideEndDateCEType.value = (e.target as HTMLInputElement).value!}>
@@ -486,6 +533,11 @@ export const Manage = defineComponent({
             <option value="negative" key="negative">BCE</option>
           </select>
           <input ref={slideEndDateEle} type="text" placeholder="选择结束时间"></input>
+          <select value={slideEndDateType.value} onChange={(e: Event) => slideEndDateType.value = (e.target as HTMLInputElement).value!}>
+            <option value="3" key="yearmonthday">年月日</option>
+            <option value="2" key="yearmonth">年月</option>
+            <option value="1" key="year">年</option>
+          </select>
 
           {/* 根据类型判断是否需要分组，title 标题中不需要分组，events 中可以设置分组进行归类 */}
           {
