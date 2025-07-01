@@ -19,8 +19,8 @@ import mongoose from 'mongoose';
       inject: [ConfigService],
       useFactory: (conf: ConfigService) => ({
         uri: conf.get<string>('DB_URI'), // 如：mongodb://localhost:27017/my
-        user: conf.get<string>('DB_USER'),
-        pass: conf.get<string>('DB_PASS'),
+        // user: conf.get<string>('DB_USER'),
+        // pass: conf.get<string>('DB_PASS'),
         dbName: conf.get<string>('DB_NAME'),
         // authSource: conf.get<string>('MONGODB_AUTH_SOURCE') || 'admin',
         // 无限重连相关配置

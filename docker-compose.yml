@@ -11,8 +11,8 @@ services:
     environment:
       DB_URI: mongodb://mongo:27017/?tls=false&replicaSet=rs0
       DB_NAME: timeline
-      DB_USER: admin
-      DB_PASS: admin
+      # DB_USER: admin
+      # DB_PASS: admin
     networks:
       - history-network
 
