@@ -10,6 +10,9 @@ services:
       - mongo
     environment:
       DB_URI: mongodb://mongo:27017/history-db
+      DB_NAME: timeline
+      DB_USER: admin
+      DB_PASS: admin
     networks:
       - history-network
 
@@ -31,6 +34,11 @@ services:
     container_name: mongo
     ports:
       - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: timeline
+    restart: always
     volumes:
       - ./mongo-data:/data/db
     networks:
