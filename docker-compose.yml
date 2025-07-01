@@ -9,7 +9,7 @@ services:
     depends_on:
       - mongo
     environment:
-      DB_URI: mongodb://admin:admin@mongo:27017/?tls=false&replicaSet=rs0
+      DB_URI: mongodb://mongo:27017/?tls=false&replicaSet=rs0
       DB_NAME: timeline
       DB_USER: admin
       DB_PASS: admin
@@ -35,8 +35,6 @@ services:
     ports:
       - "27018:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin
       MONGO_INITDB_DATABASE: timeline
     restart: always
     command: ["mongod", "--replSet", "rs0"]
