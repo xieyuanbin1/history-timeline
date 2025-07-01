@@ -333,13 +333,6 @@ export const Manage = defineComponent({
       router.push(path);
     }
 
-    function handleEditSlide(id: string, type: string, slide: RSlide) {
-      // openAddSlide.value = true;
-      console.log('handleEditSlide:', slide); // 这里可以实现编辑功能
-      initSlideForms(); // 初始化表单数据
-      handleInitAddSlide(); // 打开模态框
-    }
-
     return () => (
       <div class={["manage-container", 'p-4']}>
         <button ref="/timeline" onClick={e => handleRoute(e, '/timeline')}>查看模式</button>
