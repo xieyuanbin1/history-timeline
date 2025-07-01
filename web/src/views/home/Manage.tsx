@@ -19,7 +19,7 @@ import {
   titleSlideAddApi,
   titleSlideDeleteApi
 } from "../../api/timeline.ts";
-import {RSlide, SlideResponse} from "../../types/timeline.rest.ts";
+import {SlideResponse} from "../../types/timeline.rest.ts";
 import {SelectValue} from "ant-design-vue/es/select";
 import flatpickr from "flatpickr";
 import dayjs from 'dayjs';
