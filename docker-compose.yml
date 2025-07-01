@@ -9,7 +9,7 @@ services:
     depends_on:
       - mongo
     environment:
-      DB_URI: mongodb://admin:admin@mongo:27017/timeline?tls=false&replicaSet=rs0
+      DB_URI: mongodb://admin:admin@mongo:27017/timeline?tls=false&replicaSet=rs0&authSource=admin
       DB_NAME: timeline
       DB_USER: admin
       DB_PASS: admin
