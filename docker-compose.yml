@@ -39,6 +39,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: admin
       MONGO_INITDB_DATABASE: timeline
     restart: always
+    command: ["mongod", "--replSet", "rs0"]
     volumes:
       - ./mongo-data:/data/db
     networks:
